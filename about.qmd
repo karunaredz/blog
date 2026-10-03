@@ -1,0 +1,7 @@
+---
+title: "About"
+---
+
+Karuna G. Reddy. I work on survey sampling, stratification, optimisation and
+data science at the University of Auckland. This blog is where I write about my
+R packages and related ideas.

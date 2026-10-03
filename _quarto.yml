@@ -1,0 +1,18 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Karuna Reddy"
+  description: "R packages and notes on survey sampling, stratification, optimisation and data science."
+  navbar:
+    left:
+      - href: index.qmd
+        text: Blog
+      - href: about.qmd
+        text: About
+
+format:
+  html:
+    theme: cosmo
+    toc: true
