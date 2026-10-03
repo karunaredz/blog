@@ -1,0 +1,149 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Karuna G. Reddy. I work on survey sampling, stratification, optimisation and data science at the University of Auckland. This blog is where I write about my R packages and related ideas."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html",
+    "href": "posts/stratifyR-2-0/index.html",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "",
+    "text": "Have you ever planned a survey and got stuck on how to split your population into strata? It helps to be clear first on what kind of stratification we mean. Stratification groups similar units together and samples each group on its own, which makes the overall estimate more precise. Very often those groups come from a categorical variable, such as region, sex, or industry. That is easy and useful, but the categories fix the groups for you.\nWhen the quantity you really care about is continuous, such as income, production, or farm size, there is a more accurate option. You stratify on that variable directly, by cutting its range into bands. Because you choose where the cuts fall, you can place them to match the shape of the data, which usually gives sharper estimates than categorical groups alone. The difficulty is all in the detail: where exactly should the cut points go, how many units should each stratum get, and how much does the design actually improve your estimate? Getting those answers right, for a single continuous variable, is the whole problem.\nMy colleague M. G. M. Khan and I have spent years on exactly that problem, across business, agricultural and health surveys. stratifyR grew out of that work, and version 2.0 is now a major update on CRAN.\nThe idea is simple. You hand stratifyR your data, tell it how many strata you want and how large a sample you can afford, and it returns the optimal boundaries, the sample size for each stratum, and a clear read on how much precision the design buys. No more guessing at cut points and checking them by hand."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#installation",
+    "href": "posts/stratifyR-2-0/index.html#installation",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Installation",
+    "text": "Installation\nstratifyR is on CRAN, so installation is straightforward:\ninstall.packages(\"stratifyR\")\nlibrary(stratifyR)"
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#why-stratification-is-worth-the-effort",
+    "href": "posts/stratifyR-2-0/index.html#why-stratification-is-worth-the-effort",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Why stratification is worth the effort",
+    "text": "Why stratification is worth the effort\nMost survey variables are skewed. Think of farm production, firm turnover, or household income, where a few large units carry most of the total. If you draw a simple random sample, most of it lands in the crowded lower range and tells you very little about the big units that matter most. Stratified sampling splits the population into groups and samples each on its own, and done well it can cut the variance of an estimate by anywhere from 30 to 90 percent at the same cost.\nThe whole gain, though, depends on where the stratum boundaries sit. Place them well and the design is efficient. Place them a little off and you give back much of the benefit. Finding the best boundaries, and the matching sample sizes, is what stratifyR is for."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#a-basic-example",
+    "href": "posts/stratifyR-2-0/index.html#a-basic-example",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "A basic example",
+    "text": "A basic example\nThe package ships with a real dataset, sugarcane, covering 13,894 cane growers in Fiji, with each grower’s land area, production and income. Let us stratify production into four strata and plan a total sample of 500.\ndata(sugarcane)\n\nres &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nsummary(res)\nThat single call does three things: it fits the best distribution to the data, it finds the optimal boundaries, and it allocates the sample. The summary() output lays the whole design out in one table, with a row per stratum and a total row at the bottom. For the sugarcane production data the top stratum holds only about 8 percent of growers but, because their production varies so much, it receives the largest share of the sample. That is the skew being handled exactly as it should be."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#the-distribution-fitting-step",
+    "href": "posts/stratifyR-2-0/index.html#the-distribution-fitting-step",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "The distribution-fitting step",
+    "text": "The distribution-fitting step\nBefore it places any boundaries, strata.data() works out the shape of your variable. It fits a set of continuous distributions by maximum likelihood and keeps the one with the lowest AIC. The candidate families are:\nNormal, Log-Normal, Gamma, Weibull, Exponential, Cauchy, Uniform, Pareto, Triangular, and Right-Triangular.\nThis fitted distribution is not just for show. The default Dynamic Programming solver uses it to compute each stratum’s contribution exactly, which is a large part of why it does so well on heavy-tailed data. The chosen distribution and its parameters are printed in the summary, so you always know what was fitted.\nIf you already know the distribution, or you are still at the planning stage with no data yet, you can skip the fitting and supply the distribution yourself with strata.distr(), which we come to below."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#what-you-get-back",
+    "href": "posts/stratifyR-2-0/index.html#what-you-get-back",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "What you get back",
+    "text": "What you get back\nstrata.data() returns a strata object that carries the full design, so you can pull out any piece for your own tables or plots:\nres$OSB       # the optimal stratum boundaries\nres$nh        # sample size in each stratum\nres$Wh        # stratum weights\nres$Vh        # within-stratum variances\nres$WhSh      # each stratum's contribution to the Neyman cost\nres$WhShTot   # the total Neyman cost (lower is better)\nres$distr     # the fitted distribution name\nres$fit       # the fitted parameters\nprint(res) gives a short console summary, and summary(res) gives the full per-stratum table."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#three-solvers-one-interface",
+    "href": "posts/stratifyR-2-0/index.html#three-solvers-one-interface",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Three solvers, one interface",
+    "text": "Three solvers, one interface\nVersion 1.0 had a single engine. Version 2.0 adds two more, and you switch between all three with one argument.\nDynamic Programming (DP) is the default. It searches a fine grid and is globally optimal on that grid. It is the most reliable choice for raw data and for heavy-tailed populations, and it is the one to use when the accuracy of the boundaries matters most.\nCOBYLA is a fast, derivative-free solver run from many starting points. For symmetric or light-tailed populations it lands on the same answer as DP in a fraction of the time, which makes it handy for interactive use.\nGLOBAL is a two-phase solver that first does a broad global search and then refines it. It sits between the other two, and it is the safer fast choice when the data is skewed.\ndp   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\ncob  &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"cobyla\")\nglob &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"global\")\nThe short version: if you care most about accuracy, or the data is heavy-tailed, use DP. If you want speed on a well-behaved population, COBYLA is fine. GLOBAL is the dependable middle ground for skewed data."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#seeing-the-strata-the-plots",
+    "href": "posts/stratifyR-2-0/index.html#seeing-the-strata-the-plots",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Seeing the strata: the plots",
+    "text": "Seeing the strata: the plots\nA design is much easier to judge when you can see it. plot() on a strata object gives three views.\nThe 2D density plot is the default. It draws a histogram of your data with the fitted density curve on top and the strata shaded in different colours, so you can see at a glance where the boundaries fall and how the mass of the data is split.\nplot(res)\nThe 3D cost surface shows how the Neyman cost changes as the boundaries move. It is an interactive plotly surface, coloured from low cost to high, which makes it easy to see that the optimum sits in a well rather than on a flat plain.\nplot(res, type = \"3d\")\nThe interactive boundary explorer gives you a slider for each interior boundary. As you drag a boundary, the Neyman cost updates in real time, so you can feel how sensitive the design is to each cut-off. This is a good teaching tool, and a good sanity check.\nplot(res, type = \"interactive\")"
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#how-much-does-it-buy-you",
+    "href": "posts/stratifyR-2-0/index.html#how-much-does-it-buy-you",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "How much does it buy you?",
+    "text": "How much does it buy you?\nA new function, compare_designs(), turns a stratification into a plain efficiency report. It compares three designs at the same sample size: simple random sampling, proportional allocation, and the optimal Neyman allocation.\ncd &lt;- compare_designs(res)\ncd\nIt reports the variance, the standard error and the design effect for each design, along with the equivalent simple-random-sample size and the percentage saving. For the sugarcane production design, the optimal stratified sample of 500 growers is as precise as a simple random sample of about 5,395 growers. That is a saving of roughly 90 percent in sample size, and the function states it in one line."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#choosing-how-many-strata",
+    "href": "posts/stratifyR-2-0/index.html#choosing-how-many-strata",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Choosing how many strata",
+    "text": "Choosing how many strata\nMore strata always lower the Neyman cost, but the gain levels off quickly, and each extra stratum adds field and management effort. A simple way to choose is to run across a range of strata counts and look for the point where the curve flattens.\nfor (H in 2:6) {\n  r &lt;- strata.data(sugarcane$Production, h = H, n = 500, method = \"dp\")\n  cat(\"H =\", H, \"  Neyman cost =\", round(r$WhShTot, 2), \"\\n\")\n}\nThe Shiny app does this automatically and marks the recommended number of strata on the curve with an elbow rule, so you do not have to eyeball it."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#designing-a-survey-before-you-have-any-data",
+    "href": "posts/stratifyR-2-0/index.html#designing-a-survey-before-you-have-any-data",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Designing a survey before you have any data",
+    "text": "Designing a survey before you have any data\nSometimes you need the design at the planning stage, before a single unit is sampled. If you can assume a shape for the variable, from a past round or a pilot study, strata.distr() builds the whole design from that assumption alone, with no dataset.\nSay you are planning a household income survey. You expect income to be roughly log-normal with a median near FJD 15,000, you have a frame of 20,000 households, and you can afford 1,000 interviews.\ng &lt;- strata.distr(h = 4, initval = 500, dist = 119500,\n                  distr = \"lnorm\", params = c(meanlog = 9.616, sdlog = 0.703),\n                  n = 1000, N = 20000, method = \"dp\")\nsummary(g)\ncompare_designs(g)\nOut comes the full design before any fieldwork: the boundaries, the allocation, and the expected precision. For this setup the optimal design is about 12 times more efficient than simple random sampling, which is a strong number to take into a budget discussion."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#when-sampling-costs-differ-by-stratum",
+    "href": "posts/stratifyR-2-0/index.html#when-sampling-costs-differ-by-stratum",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "When sampling costs differ by stratum",
+    "text": "When sampling costs differ by stratum\nFieldwork is rarely equally cheap everywhere. A large grower usually costs more to visit and measure than a small one. Version 2.0 handles this with the cost and ch arguments, which put the per-stratum cost inside the optimisation, so the solver adjusts both the boundaries and the allocation.\n# cost per sampled grower, smallest stratum to largest\nch &lt;- c(20, 30, 50, 80)\n\ncostaw &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                      method = \"dp\", cost = TRUE, ch = ch)\nOn the sugarcane data this cost-aware design is about a third cheaper to run in the field than the plain design at the same 500 units. The real payoff shows when the budget, not the sample size, is the fixed constraint: for the same money the cost-aware design can afford more units and reach a lower standard error. When the budget is what limits you, turning costs on gives you a more precise estimate for the same spend."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#checking-the-solution-quality",
+    "href": "posts/stratifyR-2-0/index.html#checking-the-solution-quality",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Checking the solution quality",
+    "text": "Checking the solution quality\nThe default DP solver is globally optimal on its grid, so you can trust its boundaries. The two faster solvers are heuristics, so stratifyR reports how close their answers are to optimal. Each strata object from COBYLA or GLOBAL carries a few diagnostics:\nres$converged        # did the solver report convergence\nres$optimality_gap   # a Cauchy-Schwarz gap: how far above the lower bound\nres$kkt_residuals    # first-order optimality residuals\nA small gap and small residuals mean the fast solver has effectively matched the optimum, which is the usual case for symmetric and light-tailed data. This lets you use the quick solvers with confidence, and fall back to DP when the diagnostics say the problem is hard."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#it-works-beyond-one-field",
+    "href": "posts/stratifyR-2-0/index.html#it-works-beyond-one-field",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "It works beyond one field",
+    "text": "It works beyond one field\nStratification is not tied to agriculture. We tried the same approach on one skewed variable from three different Fiji surveys: cane production (agriculture), blood iron from a health survey, and income from a household survey. Each fitted a different distribution, a Gamma, a Weibull and a Log-Normal, yet all three gave a sample-size saving near 90 percent. The method keys off the shape of the variable, not the subject, and skewed variables turn up right across official statistics."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#the-interactive-shiny-app",
+    "href": "posts/stratifyR-2-0/index.html#the-interactive-shiny-app",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "The interactive Shiny app",
+    "text": "The interactive Shiny app\nFor users who prefer not to write code, stratifyR ships with a full Shiny application. You launch it with:\n# needs shiny, bslib and DT, installed once\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\"))\n\nstratifyRApp()\nYou start by loading data, either a built-in dataset or your own CSV or Excel file, then set the number of strata, the sample size and the solver. Everything is reactive, so changing any input updates the whole app at once. The work is organised into a set of tabs:\nOptimal Boundaries is the main tab. It shows the per-stratum summary table alongside the 2D density plot with the strata shaded.\nDesign Comparison runs compare_designs() and shows the variance, standard error and design effect for the simple random, proportional and optimal designs, plus the equivalent SRS size and the saving.\nStrata Count runs the problem across a range of strata counts, plots the Neyman cost curve, and marks the recommended number of strata with an elbow rule.\nBoundary Methods puts stratifyR’s solvers next to the classical boundary rules, so you can see how the optimal boundaries compare with the older approaches on your own data.\nSample Size turns a target precision into the sample size you need, so you can plan around a margin of error rather than a fixed sample.\nAllocation shows how the sample splits across strata under simple random, proportional and Neyman allocation, side by side.\nCost-Constrained lets you enter per-stratum costs and see the cost-aware design and what it saves.\nVisualise collects the plots: the 2D density view, the interactive 3D cost surface, and the boundary explorer with its sliders.\nNotes holds short guidance so new users can find their way around.\nEverything you build can be downloaded, and the app works well both for real survey design and for teaching."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#what-is-new-in-version-2.0",
+    "href": "posts/stratifyR-2-0/index.html#what-is-new-in-version-2.0",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "What is new in version 2.0",
+    "text": "What is new in version 2.0\nTwo new solvers, COBYLA and GLOBAL, alongside the original Dynamic Programming solver, all reached through the same method argument.\nCost-constrained allocation for surveys where the cost of sampling differs from stratum to stratum.\nA design-efficiency report, compare_designs(), giving design effects and the equivalent simple-random-sample size for competing designs.\nSolution-quality diagnostics, an optimality gap and KKT residuals, so you can see how good the fast solvers’ answers are.\nRicher visualisation, the 2D density plot, the interactive 3D cost surface, and the boundary explorer.\nA self-contained Shiny app, launched with stratifyRApp(), covering the whole workflow without writing code.\nAll of this is backward compatible with the version 1.x strata.data() and strata.distr() interface, so existing code keeps working."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#who-is-stratifyr-for",
+    "href": "posts/stratifyR-2-0/index.html#who-is-stratifyr-for",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Who is stratifyR for?",
+    "text": "Who is stratifyR for?\nstratifyR is designed for anyone who has to decide where to place stratum boundaries and how many units to sample. Some specific users:\nNational statistics offices and survey organisations, running business, agricultural and household surveys where good stratification directly lowers the sample size, and the cost, needed to reach a target precision.\nSurvey statisticians and methodologists, who gain an open, reproducible implementation with a globally optimal solver to use as a benchmark against the classical rules.\nApplied researchers in health, economics, agriculture and the environmental sciences, who can design an efficient sample at the planning stage from only an assumed distribution.\nTeachers and students of survey sampling, who can use the app and the visualisations to see how boundaries and allocation affect an estimate."
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#how-to-cite",
+    "href": "posts/stratifyR-2-0/index.html#how-to-cite",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "How to cite",
+    "text": "How to cite\nIf you use stratifyR in your work, please cite it. You can get the citation in R with:\ncitation(\"stratifyR\")"
+  },
+  {
+    "objectID": "posts/stratifyR-2-0/index.html#where-to-find-it",
+    "href": "posts/stratifyR-2-0/index.html#where-to-find-it",
+    "title": "stratifyR 2.0: A Major Update for Optimal Survey Stratification",
+    "section": "Where to find it",
+    "text": "Where to find it\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR\nA full software paper describing version 2.0 and benchmarking the three solvers is in preparation. We would love to hear how you are using the package. Feel free to leave a comment below or get in touch directly."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Blog",
+    "section": "",
+    "text": "stratifyR 2.0: A Major Update for Optimal Survey Stratification\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\n\n\n\n\n\n\n\n\nOct 3, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
+  }
+]
