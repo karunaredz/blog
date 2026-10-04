@@ -2,6 +2,8 @@
 title: "About"
 ---
 
-Karuna G. Reddy. I work on survey sampling, stratification, optimisation and
-data science at the University of Auckland. This blog is where I write about my
-R packages and related ideas.
+I am Karuna Reddy, an academic at the University of Auckland, where I work as a Professional Teaching Fellow in Data Science at the School of Computer Science, and also serve as Deputy Director of Data Science. I coordinate courses and supervise Masters and PhD students on research and industry projects.
+
+My research is in survey sampling methodology, with a focus on optimal stratification, mathematical programming and optimisation, along with broader interests in data science and machine learning. I did my BSc, MSc and PhD at the University of the South Pacific in Fiji, and before Auckland I was a Research Fellow in Survey Statistics at the Australian National University.
+
+On this blog I share the R packages I build, such as stratifyR and FitVerse, with worked examples and notes on the methods behind them.

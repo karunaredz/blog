@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://karunaredz.github.io/blog/about.html</loc>
+    <lastmod>2026-10-04T02:09:16.308Z</lastmod>
+  </url>
+  <url>
     <loc>https://karunaredz.github.io/blog/posts/fitverse/index.html</loc>
     <lastmod>2026-10-04T01:47:02.657Z</lastmod>
   </url>
   <url>
+    <loc>https://karunaredz.github.io/blog/posts/stratifyR-2-0/index.html</loc>
+    <lastmod>2026-10-03T14:27:04.961Z</lastmod>
+  </url>
+  <url>
     <loc>https://karunaredz.github.io/blog/index.html</loc>
     <lastmod>2026-10-03T14:27:04.960Z</lastmod>
+  </url>
+  <url>
+    <loc>https://karunaredz.github.io/blog/posts/fitverse-1.0-2/index.html</loc>
+    <lastmod>2026-10-04T01:47:02.657Z</lastmod>
+  </url>
+  <url>
+    <loc>https://karunaredz.github.io/blog/posts/stratifyR-2.0-1/index.html</loc>
+    <lastmod>2026-10-04T02:11:13.608Z</lastmod>
   </url>
 </urlset>

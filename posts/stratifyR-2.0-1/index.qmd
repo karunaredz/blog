@@ -1,5 +1,5 @@
 ---
-title: "stratifyR 2.0: A Major Update for Optimal Survey Stratification"
+title: "stratifyR: A Major Update for Optimal Survey Stratification"
 author: "Karuna G. Reddy and M. G. M. Khan"
 date: "2026-10-03"
 categories: [R, stratifyR, survey sampling]
