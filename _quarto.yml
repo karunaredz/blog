@@ -4,6 +4,7 @@ project:
 
 website:
   title: "Karuna Reddy"
+  site-url: "https://karunaredz.github.io/blog/"
   description: "R packages and notes on survey sampling, stratification, optimisation and data science."
   navbar:
     left:
