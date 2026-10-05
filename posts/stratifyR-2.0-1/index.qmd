@@ -9,7 +9,7 @@ Have you ever planned a survey and got stuck on how to split your population int
 
 When the quantity you really care about is continuous, such as income, production, or farm size, there is a more accurate option. You stratify on that variable directly, by cutting its range into bands. Because you choose where the cuts fall, you can place them to match the shape of the data, which usually gives sharper estimates than categorical groups alone. The difficulty is all in the detail: where exactly should the cut points go, how many units should each stratum get, and how much does the design actually improve your estimate? Getting those answers right, for a single continuous variable, is the whole problem.
 
-My colleague M. G. M. Khan and I have spent years on exactly that problem, across business, agricultural and health surveys. **stratifyR** grew out of that work, and version 2.0 is now a major update on CRAN.
+We have spent years on exactly that problem, across business, agricultural and health surveys. **stratifyR** grew out of that work, and version 2.0-1 is now a major update on CRAN.
 
 The idea is simple. You hand stratifyR your data, tell it how many strata you want and how large a sample you can afford, and it returns the optimal boundaries, the sample size for each stratum, and a clear read on how much precision the design buys. No more guessing at cut points and checking them by hand.
 
