@@ -2,18 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://karunaredz.github.io/blog/about.html</loc>
-    <lastmod>2026-10-04T02:09:16.308Z</lastmod>
+    <lastmod>2026-10-21T03:40:27.422Z</lastmod>
   </url>
   <url>
     <loc>https://karunaredz.github.io/blog/posts/stratifyR-2.0-1/index.html</loc>
-    <lastmod>2026-10-04T11:12:08.470Z</lastmod>
+    <lastmod>2026-10-11T04:16:51.745Z</lastmod>
   </url>
   <url>
     <loc>https://karunaredz.github.io/blog/posts/fitverse-1.0-2/index.html</loc>
-    <lastmod>2026-10-04T11:12:44.801Z</lastmod>
+    <lastmod>2026-10-11T04:01:59.101Z</lastmod>
   </url>
   <url>
     <loc>https://karunaredz.github.io/blog/index.html</loc>
     <lastmod>2026-10-03T14:27:04.960Z</lastmod>
+  </url>
+  <url>
+    <loc>https://karunaredz.github.io/blog/posts/multistrata-1.0-1/index.html</loc>
+    <lastmod>2026-10-11T05:57:43.555Z</lastmod>
+  </url>
+  <url>
+    <loc>https://karunaredz.github.io/blog/posts/clusta-1.0-1/index.html</loc>
+    <lastmod>2026-10-11T05:48:46.011Z</lastmod>
+  </url>
+  <url>
+    <loc>https://karunaredz.github.io/blog/posts/stratifyR-2.0-3/index.html</loc>
+    <lastmod>2026-10-21T03:35:08.456Z</lastmod>
   </url>
 </urlset>

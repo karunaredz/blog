@@ -1,0 +1,568 @@
+---
+title: "multistrata"
+subtitle: "Multivariate Optimum Stratification and Sample Allocation for Surveys"
+description: "Joint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1"
+author: "Karuna G. Reddy and M. G. M. Khan"
+date: "2026-10-04"
+categories: [R, multistrata, survey sampling, stratification, CRAN]
+image: multistrata-logo.png
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "On this page"
+    code-copy: true
+    highlight-style: github
+execute:
+  eval: false
+  echo: true
+---
+
+```{=html}
+<style>
+.pkg-hero {
+  display: flex; align-items: center; gap: 28px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #062A40 0%, #0B4F6C 55%, #0D7377 100%);
+  border-radius: 10px; margin-bottom: 28px; color: white;
+}
+.pkg-hero img { width: 110px; height: auto; flex-shrink: 0; border-radius: 6px; }
+.pkg-hero h1 { margin: 0 0 4px 0; font-size: 2.4rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
+.pkg-hero .subtitle { font-size: 1.05rem; color: #80DEEA; margin: 0 0 10px 0; }
+.pkg-hero .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pkg-hero .badges a img, .pkg-hero .badges img { height: 22px; vertical-align: middle; border-radius: 0; width: auto; }
+.pkg-hero .install-box {
+  background: rgba(0,0,0,0.4); border-radius: 6px; padding: 10px 14px;
+  font-family: monospace; font-size: 0.9rem; color: #80DEEA;
+  margin-top: 10px; border-left: 3px solid #FFD54F;
+}
+.fn-card {
+  border-left: 4px solid #0B4F6C; padding: 12px 16px;
+  background: #f0f9fb; border-radius: 0 6px 6px 0; margin: 12px 0; line-height: 1.9;
+}
+.fn-card code { background: #B2EBF2; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
+.solver-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+.solver-card { border-radius: 8px; padding: 14px 16px; }
+.solver-cob  { background: #e0f7fa; border-top: 4px solid #00838F; }
+.solver-slsqp { background: #e8f5e9; border-top: 4px solid #2E7D32; }
+.solver-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; }
+.solver-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
+.mode-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+.mode-card { border-radius: 8px; padding: 14px 16px; }
+.mode-emp  { background: #fff3e0; border-top: 4px solid #E65100; }
+.mode-par  { background: #f3e5f5; border-top: 4px solid #6A1B9A; }
+.mode-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; }
+.mode-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
+.use-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.use-card { border-radius: 8px; padding: 14px; background: white; border: 1px solid #B2EBF2; }
+.use-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; color: #0B4F6C; }
+.use-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
+.new-item { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; }
+.new-item .tag { background: #0B4F6C; color: white; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.helper-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+.helper-card { border-radius: 8px; padding: 13px 15px; background: #f0f9fb; border: 1px solid #B2EBF2; }
+.helper-card h4 { margin: 0 0 4px 0; font-size: 0.88rem; color: #0B4F6C; }
+.helper-card p  { margin: 0; font-size: 0.78rem; color: #444; line-height: 1.4; }
+</style>
+
+<div class="pkg-hero">
+  <img src="multistrata-logo.png" alt="multistrata logo"/>
+  <div>
+    <h1>multistrata</h1>
+    <div class="subtitle">Multivariate Optimum Stratification and Sample Allocation</div>
+    <div class="badges">
+      <a href="https://cran.r-project.org/package=multistrata"><img src="https://www.r-pkg.org/badges/version/multistrata" alt="CRAN"/></a>
+      <a href="https://cran.r-project.org/package=multistrata"><img src="https://cranlogs.r-pkg.org/badges/multistrata" alt="Downloads"/></a>
+      <img src="https://img.shields.io/badge/license-GPL--3-blue.svg" alt="GPL-3"/>
+      <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1+"/>
+    </div>
+    <div class="install-box">
+      install.packages("multistrata") &nbsp;·&nbsp; library(multistrata)
+    </div>
+  </div>
+</div>
+```
+
+stratifyR finds optimal boundaries for surveys stratified on a single variable. In practice, many surveys stratify on two or more variables at the same time and need to estimate several study variables well. multistrata extends stratifyR to that general case.
+
+It jointly determines boundaries and sample allocation across multiple stratification variables and multiple study variables, minimising a weighted composite variance objective. The algorithm alternates between a boundary update and an exact generalised Neyman allocation, embedded in a multi-start scheme to avoid poor local solutions.
+
+::: {.callout-note}
+## Connection to stratifyR
+multistrata is the multivariate extension of the Reddy and Khan (2018) framework. Every single-variable design that stratifyR handles is a special case of what multistrata solves. The function names are different but the ideas are the same.
+:::
+
+---
+
+## Quick Start
+
+```r
+library(multistrata)
+
+# simulate a two-variable population
+set.seed(42)
+pop <- sim_population(N = 5000, p = 2, q = 2, scenario = "independent")
+
+# joint stratification on X1 and X2, estimating Y1 and Y2
+res <- stratify_multi(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  H_vec      = c(3, 3),          # 3 strata per variable = 9 total strata
+  n_total    = 500,
+  omega      = c(0.5, 0.5),      # equal weight on both study variables
+  n_starts   = 50
+)
+print(res)
+summary(res)
+```
+
+`H_vec` gives the number of strata for each stratification variable. With `H_vec = c(3, 3)` you get a 3x3 grid of 9 strata in the joint space.
+
+---
+
+## Core Function: stratify_multi()
+
+The main function takes your population frame, your study variables, and a strata grid. It returns optimal boundaries, stratum sample sizes, and diagnostics.
+
+### Key arguments
+
+```r
+stratify_multi(
+  data,                    # stratification variables (N x p data frame or matrix)
+  study_vars,              # study (target) variables (N x q)
+  H_vec,                   # strata per variable, e.g. c(3, 3) or c(4, 2, 3)
+  n_total,                 # total sample size
+  omega      = NULL,       # study-variable weights (default: equal)
+  constraint = "n_total",  # "n_total" or "cost"
+  cost_total = NULL,       # budget C* (when constraint = "cost")
+  cost_fixed = 0,          # fixed overhead deducted from budget
+  cost_per_unit = 1,       # per-unit cost (scalar or H-vector)
+  cv_targets = NULL,       # max CV per study variable, e.g. c(0.03, 0.03)
+  distributions = NULL,    # NULL (empirical) or "auto" or named list of families
+  method     = "cobyla",   # boundary solver: "cobyla" or "slsqp"
+  n_starts   = 50,         # number of random starts
+  n_min      = 2,          # minimum sample per stratum
+  verbose    = FALSE,      # print per-start progress
+  trace      = FALSE       # store per-iteration objective sequence
+)
+```
+
+::: {.callout-tip}
+## Reproducibility
+The multi-start scheme draws its initial boundaries at random. Always set a seed before any design you intend to report.
+
+```r
+set.seed(1)
+res <- stratify_multi(data, study_vars, H_vec = c(4, 3), n_total = 600)
+```
+:::
+
+---
+
+## Two Weight Modes
+
+The stratum weights Wh (the fraction of the population in each stratum) can be estimated in two ways.
+
+```{=html}
+<div class="mode-grid">
+  <div class="mode-card mode-emp">
+    <h4>Empirical mode (default)</h4>
+    <p>Wh is the sample proportion of units falling in each stratum. Uses only the data, no distributional assumptions. Set <code>distributions = NULL</code>.</p>
+  </div>
+  <div class="mode-card mode-par">
+    <h4>Parametric mode</h4>
+    <p>Wh is computed from marginal CDF differences under a fitted distribution. Set <code>distributions = "auto"</code> for AIC-based family selection, or supply families directly.</p>
+  </div>
+</div>
+```
+
+Auto mode picks the best-fitting marginal family per stratification variable:
+
+```r
+res <- stratify_multi(
+  data, study_vars, H_vec = c(3, 3), n_total = 500,
+  distributions = "auto"
+)
+# res$.meta$distributions shows the selected families
+```
+
+You can also supply families directly:
+
+```r
+dists <- list(
+  X1 = list(family = "lnorm", meanlog = 1.2, sdlog = 0.8),
+  X2 = list(family = "gamma", shape = 2.5, rate = 0.4)
+)
+res <- stratify_multi(data, study_vars, H_vec = c(3, 3), n_total = 500,
+                      distributions = dists)
+```
+
+Supported families: `norm`, `lnorm`, `gamma`, `exp`, `weibull`, `beta`, `unif`, `chisq`, `t`, `cauchy`, `logis`, `pareto`, `triang`. When FitVerse is installed, auto mode can also search its 52 families.
+
+---
+
+## Two Solvers
+
+```{=html}
+<div class="solver-grid">
+  <div class="solver-card solver-cob">
+    <h4>COBYLA (default)</h4>
+    <p><code>method = "cobyla"</code><br>Derivative-free constrained optimisation. Works in both empirical and parametric modes. Robust and fast for most problems.</p>
+  </div>
+  <div class="solver-card solver-slsqp">
+    <h4>SLSQP</h4>
+    <p><code>method = "slsqp"</code><br>Gradient-based solver using the closed-form weight gradient (Section 4.2 of the paper). Parametric mode only. Faster convergence when a good distribution fit is available.</p>
+  </div>
+</div>
+```
+
+### Checking the solution
+
+After fitting, check the quality diagnostics:
+
+```r
+res$objective        # optimal composite variance Phi*
+res$optimality_gap   # gap above the lower bound (0 = at the bound)
+res$kkt_residual     # first-order stationarity residual
+res$kkt_ok           # TRUE if residual is below tol_kkt
+res$converged        # did the solver converge within max_iter?
+res$n_starts_run     # number of random starts completed
+```
+
+---
+
+## Reading the Results
+
+```r
+res$boundaries       # list of p boundary vectors (one per stratification variable)
+res$allocation       # stratum sample sizes (integer vector of length H_total)
+res$stratum_stats    # per-stratum N_h, W_h, n_h, A_h, within-stratum variances
+```
+
+The print method shows a formatted summary:
+
+```r
+print(res)
+```
+
+```
+================================================
+  Multivariate Optimum Stratification (multistrata)
+================================================
+  Stratification variables : 2  (X1, X2)
+  Study variables          : 2  (Y1, Y2)
+  Strata per variable      : 3 x 3
+  Total strata             : 9
+  ...
+  Composite variance (Phi) : 0.0048
+  Optimality gap           : 0.12%
+  Converged                : YES
+  Multi-starts used        : 50
+```
+
+---
+
+## Precision-Driven Design: find_n()
+
+The usual question is "given n, what is the best design?". Sometimes the question runs the other way: "what is the smallest n that keeps all CVs below a target?". `find_n()` answers that.
+
+```r
+fn <- find_n(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  cv_targets = c(0.03, 0.03),     # max 3% CV on Y1 and Y2
+  H_vec      = c(3, 3),
+  n_starts   = 20
+)
+print(fn)
+# fn$n          -- smallest feasible total sample size
+# fn$allocation -- stratum sizes at that n
+# fn$cv_achieved -- actual CVs achieved
+```
+
+It works by integer bisection over the CV-constrained allocation sub-problem. Boundaries are fixed from a single optimisation run and reused, which keeps the computation fast.
+
+---
+
+## Choosing the Strata Grid: choose_H()
+
+More strata always reduce variance, but the gains level off. `choose_H()` traces the optimal composite variance across a family of candidate grids and flags the elbow.
+
+```r
+ch <- choose_H(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  n_total    = 500,
+  H_each     = 2:5,       # tries 2x2, 3x3, 4x4, 5x5
+  n_starts   = 10,
+  plot       = TRUE
+)
+ch$table            # Phi*, optimality gap, relative gain per grid
+ch$recommended      # recommended H_vec (elbow)
+```
+
+The plot shows the Phi* curve with the recommended grid marked. Go beyond the recommended grid only if the additional precision is worth the operational cost of more strata.
+
+---
+
+## Priority Trade-Off: omega_sweep()
+
+When you have two study variables and do not know how to weight them, `omega_sweep()` shows how the optimal design changes as the priority shifts from one to the other.
+
+```r
+sw <- omega_sweep(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  H_vec      = c(3, 3),
+  n_total    = 500,
+  n_grid     = 11,           # 0%, 10%, ..., 100% weight on Y1
+  n_starts   = 10
+)
+plot(sw)
+```
+
+The plot traces Phi* and per-variable variance against the weight on Y1. The flat middle region, if there is one, shows where the design is robust to the exact choice of weights.
+
+---
+
+## Cost-Constrained Design
+
+When sampling units in different strata cost different amounts, supply a per-stratum cost vector and a total budget instead of a fixed n.
+
+```r
+res_cost <- stratify_multi(
+  data          = pop[, c("X1", "X2")],
+  study_vars    = pop[, c("Y1", "Y2")],
+  H_vec         = c(3, 3),
+  constraint    = "cost",
+  cost_total    = 50000,
+  cost_fixed    = 2000,         # fixed overhead (travel, setup)
+  cost_per_unit = c(rep(20, 5), rep(40, 4)),   # H_total = 9 strata
+  n_starts      = 30
+)
+```
+
+The cost-aware design adjusts both boundaries and allocation. Strata with high per-unit costs get fewer units and the boundaries may shift to rebalance.
+
+---
+
+## CV-Constrained Allocation
+
+Specify maximum acceptable coefficients of variation for each study variable instead of (or alongside) a total sample size.
+
+```r
+res_cv <- stratify_multi(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  H_vec      = c(3, 3),
+  n_total    = 800,
+  cv_targets = c(0.05, 0.04),   # 5% CV on Y1, 4% on Y2
+  n_starts   = 30
+)
+res_cv$cv_achieved    # CVs actually achieved by the optimal allocation
+```
+
+---
+
+## Design Without Data: stratify_multi_density()
+
+You can plan a stratified sample before collecting data, using assumed marginal distributions from a past survey or pilot study.
+
+```r
+dists <- list(
+  X1 = list(family = "lnorm", meanlog = 1.8, sdlog = 0.7),
+  X2 = list(family = "gamma", shape = 3.0,   rate  = 0.5)
+)
+res_dens <- stratify_multi_density(
+  distributions = dists,
+  H_vec         = c(3, 3),
+  n_total       = 400,
+  omega         = c(0.5, 0.5)
+)
+```
+
+Stratum weights are computed from the marginal CDFs. Study-variable moments come from Gauss-Kronrod quadrature of the marginal densities. This matches the empirical mode in the large-sample limit.
+
+---
+
+## Survey Integration
+
+Two functions take the optimal design into production.
+
+### assign_strata()
+
+Applies the boundaries from a fitted design to any set of units: an estimation frame, a fresh census extract, or hold-out data.
+
+```r
+# fit on a pilot sample, score the full frame
+strata_labels <- assign_strata(res, newdata = full_frame[, c("X1", "X2")])
+table(strata_labels)
+```
+
+The function matches columns by name when available, so you do not need to worry about column order.
+
+### as_svydesign()
+
+Exports a `survey::svydesign` object ready for estimation with the survey package or srvyr.
+
+```r
+svy <- as_svydesign(res, frame = pop)
+# standard survey estimation from here
+library(survey)
+svymean(~Y1 + Y2, design = svy)
+
+# or just a labelled frame for srvyr
+labelled_frame <- as_svydesign(res, frame = pop, frame_only = TRUE)
+# columns .stratum, .N_h, .n_h, .weight are added automatically
+```
+
+---
+
+## Visualisation
+
+::: {.panel-tabset}
+
+### Boundary Diagram
+
+```r
+plot_strata(res)
+```
+
+For one stratification variable: density with boundary walls. For two variables: a 3-D perspective plot of the joint density with boundary planes. The same function works for any number of variables.
+
+### Allocation Bar Chart
+
+```r
+plot(res, which = "allocation")
+```
+
+Bar chart of stratum sample sizes. Shows how the allocation spreads across strata.
+
+### Weights Bar Chart
+
+```r
+plot(res, which = "weights")
+```
+
+Stratum weights Wh as a bar chart. Useful for checking how uniformly the population is distributed across strata.
+
+### Omega Sweep
+
+```r
+sw <- omega_sweep(data, study_vars, H_vec = c(3, 3), n_total = 500)
+plot(sw)
+```
+
+Traces the precision trade-off as the weight shifts between two study variables.
+
+:::
+
+---
+
+## Benchmarking
+
+`benchmark_designs()` compares the multistrata design against simpler alternatives: proportional allocation, equal allocation, and two classical boundary rules (Dalenius-Hodges and Gunning-Horgan).
+
+```r
+bm <- benchmark_designs(res, pop)
+print(bm)
+```
+
+Results show composite variance and per-variable CVs for each design at the same total sample size.
+
+---
+
+## Simulated Populations
+
+`sim_population()` generates test populations with known structures.
+
+```r
+pop <- sim_population(N = 5000, p = 2, q = 2, scenario = "independent")
+```
+
+Available scenarios:
+
+| Scenario | Description |
+|----------|-------------|
+| `"independent"` | Stratification and study variables uncorrelated |
+| `"correlated"` | Moderate positive correlation between X and Y variables |
+| `"weibull_pareto"` | Heavy-tailed establishment-survey archetype |
+| `"copula"` | Dependent stratification variables via a Gaussian copula with log-normal margins |
+
+---
+
+## Shiny App
+
+```r
+install.packages(c("shiny", "bslib", "DT", "plotly"))   # once
+run_app()
+```
+
+The app exposes the full workflow without writing code:
+
+```{=html}
+<div class="fn-card">
+<strong>Data input:</strong> upload your own CSV, generate a simulated population, or use one of the three built-in datasets<br>
+<strong>Design:</strong> set H_vec, n_total or budget, solver, weight mode, and omega<br>
+<strong>find_n:</strong> enter CV targets, get the minimum n<br>
+<strong>choose_H:</strong> scan candidate grids and view the elbow<br>
+<strong>Omega explorer:</strong> slide the priority weight and watch the design change<br>
+<strong>Benchmark:</strong> compare against proportional, equal, and classical rules<br>
+<strong>Visualise:</strong> boundary diagram, allocation bar chart, cost surface<br>
+<strong>Export:</strong> download report (PDF/HTML) and a reproducible R script with the set.seed() call
+</div>
+```
+
+The generated R script includes the exact `set.seed()` call for the run shown on screen, so the design can be reproduced from the console.
+
+---
+
+## Who Is multistrata For?
+
+```{=html}
+<div class="use-grid">
+  <div class="use-card"><h4>🏛 National Statistical Offices</h4><p>Business and agricultural surveys that stratify on size and sector simultaneously, with precision targets on multiple indicators.</p></div>
+  <div class="use-card"><h4>📐 Survey Methodologists</h4><p>A reproducible, open implementation with formal convergence guarantees, optimality gaps, and KKT diagnostics for peer review.</p></div>
+  <div class="use-card"><h4>🔬 Applied Researchers</h4><p>Health, agricultural, economic, and environmental studies where more than one stratification variable is available at the design stage.</p></div>
+  <div class="use-card"><h4>📊 Planning-Stage Design</h4><p>Use the density mode and find_n() to plan a complete survey before collecting data, from distributional assumptions alone.</p></div>
+  <div class="use-card"><h4>🎓 Teachers and Students</h4><p>The Shiny app and sim_population() make the concepts of joint stratification and the Neyman trade-off easy to explore.</p></div>
+</div>
+```
+
+---
+
+## Quick Reference
+
+| Function | Purpose |
+|----------|---------|
+| `stratify_multi(data, study_vars, H_vec, n_total)` | Joint boundary + allocation optimisation |
+| `stratify_multi_density(distributions, H_vec, n_total)` | Design from marginal densities, no data needed |
+| `find_n(data, study_vars, cv_targets, H_vec)` | Smallest n meeting all CV targets |
+| `choose_H(data, study_vars, n_total)` | Scan strata grids and find the elbow |
+| `omega_sweep(data, study_vars, H_vec, n_total)` | Priority trade-off between two study variables |
+| `assign_strata(result, newdata)` | Score any frame into the optimal strata |
+| `as_svydesign(result, frame)` | Export a survey::svydesign object |
+| `benchmark_designs(result, pop)` | Compare vs proportional, equal, and classical rules |
+| `sim_population(N, p, q, scenario)` | Generate a test population |
+| `plot_strata(result)` | Boundary diagram (1-D to n-D) |
+| `plot(result, which = "allocation")` | Allocation bar chart |
+| `run_app()` | Launch interactive Shiny app |
+| `print(result)` | Formatted design summary |
+| `summary(result)` | Per-stratum table |
+
+---
+
+## Citation
+
+```r
+citation("multistrata")
+```
+
+> Reddy, K. G., & Khan, M. G. M. (2026). *multistrata: Multivariate Optimum Stratification and Sample Allocation for Surveys*. R package version 1.0-1. <https://cran.r-project.org/package=multistrata>
+
+---
+
+::: {.callout-note appearance="simple"}
+multistrata is on CRAN: <https://cran.r-project.org/package=multistrata>
+We would love to hear how you are using it. Leave a comment or get in touch directly.
+:::

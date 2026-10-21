@@ -1,9 +1,11 @@
 ---
-title: "stratifyR 2.0-1"
+title: "stratifyR 2.0-3"
 subtitle: "Optimal Survey Stratification in R"
-description: "Dynamic programming · COBYLA · GLOBAL solver · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-1"
+description: "Dynamic programming · Exact solver · COBYLA · GLOBAL · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-3"
 author: "Karuna G. Reddy and M. G. M. Khan"
-date: "2026-10-03"
+date: "2026-10-21"
+aliases:
+  - /posts/stratifyR-2.0-1/
 categories: [R, stratifyR, survey sampling, CRAN]
 image: stratifyr-logo.png
 format:
@@ -41,11 +43,12 @@ execute:
   background: #f0f7ff; border-radius: 0 6px 6px 0; margin: 12px 0; line-height: 1.9;
 }
 .fn-card code { background: #BBDEFB; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
-.solver-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 16px 0; }
+.solver-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 16px 0; }
 .solver-card { border-radius: 8px; padding: 14px 16px; }
 .solver-dp   { background: #e8f5e9; border-top: 4px solid #2E7D32; }
 .solver-cob  { background: #e3f2fd; border-top: 4px solid #1565C0; }
 .solver-glob { background: #fff3e0; border-top: 4px solid #E65100; }
+.solver-exact { background: #f3e5f5; border-top: 4px solid #6A1B9A; }
 .solver-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; }
 .solver-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
 .use-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
@@ -59,7 +62,7 @@ execute:
 <div class="pkg-hero">
   <img src="stratifyr-logo.png" alt="stratifyR logo"/>
   <div>
-    <h1>stratifyR 2.0-1</h1>
+    <h1>stratifyR 2.0-3</h1>
     <div class="subtitle">Optimal Survey Stratification in R</div>
     <div class="badges">
       <a href="https://cran.r-project.org/package=stratifyR"><img src="https://www.r-pkg.org/badges/version/stratifyR" alt="CRAN"/></a>
@@ -76,11 +79,11 @@ execute:
 
 When your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.
 
-**stratifyR 2.0-1** works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report.
+**stratifyR 2.0-3** works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report.
 
 ::: {.callout-note}
 ## Why stratification matters
-For skewed populations, optimal stratification typically reduces variance by **30–90%** at the same total sample size. The gain depends entirely on where the boundaries sit. stratifyR finds the best boundaries for your data.
+For skewed populations, optimal stratification can cut the variance a great deal at the same total sample size. The gain depends entirely on where the boundaries sit. stratifyR finds the best boundaries for your data.
 :::
 
 ---
@@ -117,7 +120,7 @@ Before placing any boundaries, `strata.data()` automatically fits your variable'
 
 `Normal` · `Log-Normal` · `Gamma` · `Weibull` · `Exponential` · `Cauchy` · `Uniform` · `Pareto` · `Triangular` · `Right-Triangular`
 
-The fitted distribution is used by the Dynamic Programming solver to compute each stratum's contribution exactly. This is what makes it reliable on skewed and heavy-tailed data.
+The fitted distribution is used by the Dynamic Programming solver to compute each stratum's contribution exactly. In 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.
 
 ::: {.callout-tip}
 Already know the distribution? Use `strata.distr()` to supply it directly. No data needed (see [Design Without Data](#design-without-data)).
@@ -125,27 +128,32 @@ Already know the distribution? Use `strata.distr()` to supply it directly. No da
 
 ---
 
-## Three Solvers
+## Four Solvers
 
 ```{=html}
 <div class="solver-grid">
   <div class="solver-card solver-dp">
-    <h4>⚙ Dynamic Programming</h4>
-    <p><code>method = "dp"</code><br><strong>Globally optimal</strong> on a fine grid. Best for heavy-tailed or skewed data. Most reliable choice when boundary accuracy matters most.</p>
+    <h4>Dynamic Programming</h4>
+    <p><code>method = "dp"</code><br>The default. <strong>Globally optimal</strong> on a fine grid for the fitted distribution, followed by a short local refinement that can only improve the answer.</p>
+  </div>
+  <div class="solver-card solver-exact">
+    <h4>EXACT</h4>
+    <p><code>method = "exact"</code><br>Dynamic programming on the data themselves. Returns the <strong>best possible partition of your sample</strong>. Exact for up to 20,000 distinct cut points.</p>
   </div>
   <div class="solver-card solver-cob">
-    <h4>⚡ COBYLA</h4>
-    <p><code>method = "cobyla"</code><br>Fast derivative-free solver from many starting points. Matches DP on symmetric/light-tailed data in a fraction of the time. Best for interactive use.</p>
+    <h4>COBYLA</h4>
+    <p><code>method = "cobyla"</code><br>Fast multi-start solver. One start comes from a quick coarse exact search, so it copes well with very skewed data. Best for interactive use.</p>
   </div>
   <div class="solver-card solver-glob">
-    <h4>🌐 GLOBAL</h4>
-    <p><code>method = "global"</code><br>Two-phase: broad global search + refinement. The safe fast choice for skewed data when DP is too slow.</p>
+    <h4>GLOBAL</h4>
+    <p><code>method = "global"</code><br>Two phases: a broad DIRECT-L search on the rank scale, then a local refinement. A safe, fast choice for skewed data.</p>
   </div>
 </div>
 ```
 
 ```r
 dp   <- strata.data(sugarcane$Production, h = 4, n = 500, method = "dp")
+ex   <- strata.data(sugarcane$Production, h = 4, n = 500, method = "exact")
 cob  <- strata.data(sugarcane$Production, h = 4, n = 500, method = "cobyla")
 glob <- strata.data(sugarcane$Production, h = 4, n = 500, method = "global")
 ```
@@ -204,8 +212,8 @@ cd
 Compares three designs at the same sample size: **Simple Random Sampling**, **Proportional Allocation**, and **Optimal Neyman Allocation**. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.
 
 ::: {.callout-note}
-## Example result (sugarcane production, n = 500)
-The optimal stratified sample of 500 growers is **as precise as a simple random sample of ~5,395 growers**. That is roughly a 90% saving in sample size.
+## Reading the report
+The equivalent SRS size tells you how many units a simple random sample would need to match the precision of your stratified design. On skewed data such as the sugarcane production, it is many times larger than the stratified sample.
 :::
 
 ---
@@ -237,7 +245,6 @@ g <- strata.distr(h = 4, initval = 500, dist = 119500,
                   n = 1000, N = 20000, method = "dp")
 summary(g)
 compare_designs(g)
-# Optimal design ~12x more efficient than SRS
 ```
 
 ---
@@ -253,7 +260,7 @@ cost_res <- strata.data(sugarcane$Production, h = 4, n = 500,
                         method = "dp", cost = TRUE, ch = ch)
 ```
 
-The cost-aware design adjusts both boundaries and allocation. On the sugarcane data it is **about a third cheaper** to run in the field at the same total n.
+The cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design's, so it is the better choice when the budget, rather than the sample size, is fixed.
 
 ---
 
@@ -281,17 +288,21 @@ The app covers the full workflow across eight tabs:
 
 ---
 
-## What Is New in Version 2.0-1
+## What Is New in Version 2.0-3
+
+Versions 2.0-2 and 2.0-3 are accuracy releases. They came out of a large simulation study (ten distributions, 20 random seeds, two to six strata), checked against the exact optimum.
 
 ```{=html}
-<div class="new-item"><span class="tag">NEW</span><div>Two additional solvers, <strong>COBYLA</strong> and <strong>GLOBAL</strong>, alongside DP. All available through the same <code>method</code> argument.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong>Cost-constrained allocation</strong> via <code>cost = TRUE</code> and <code>ch</code> arguments.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong><code>compare_designs()</code></strong>: design-efficiency report with design effects and equivalent SRS sizes.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong>Solution-quality diagnostics</strong>: optimality gap and KKT residuals for fast solvers.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong>Richer visualisation</strong>: 2D density, interactive 3D cost surface, real-time boundary explorer.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong>Full Shiny app</strong> via <code>stratifyRApp()</code> covering the entire workflow.</div></div>
-<div class="new-item"><span class="tag">✔ COMPAT</span><div>Fully backward-compatible with version 1.x. Existing <code>strata.data()</code> and <code>strata.distr()</code> calls work unchanged.</div></div>
+<div class="new-item"><span class="tag">NEW</span><div><strong>Exact solver</strong>: <code>method = "exact"</code> runs dynamic programming on the data and returns the best possible partition. It is also the reference the other solvers are checked against.</div></div>
+<div class="new-item"><span class="tag">BETTER</span><div><strong>COBYLA and GLOBAL</strong> now reach the exact optimum, or come within about 0.1% of it, on every population in the study, including very heavy-tailed ones such as Pareto and Cauchy samples.</div></div>
+<div class="new-item"><span class="tag">BETTER</span><div><strong>DP</strong> adds a short local refinement after the grid search, and two traceback fixes make it more robust on heavy-tailed data.</div></div>
+<div class="new-item"><span class="tag">FIX</span><div><strong>Distribution fitting</strong>: Pareto and triangular fits now work inside the package, with a numerically stable Pareto likelihood and robust Cauchy starting values.</div></div>
+<div class="new-item"><span class="tag">FIX</span><div><strong>Boundaries and costs</strong>: boundaries are kept at full precision, every unit is always counted, and tied values are never split across strata.</div></div>
+<div class="new-item"><span class="tag">FIX</span><div><code>strata.distr()</code> now gives stratum sizes that add up to N exactly, and gives a clear message when the range lies outside a uniform or triangular distribution.</div></div>
+<div class="new-item"><span class="tag">COMPAT</span><div>Fully backward-compatible. Existing <code>strata.data()</code> and <code>strata.distr()</code> calls work unchanged.</div></div>
 ```
+
+Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, `compare_designs()`, solution-quality diagnostics, the 2D, 3D and interactive plots, and the Shiny app.
 
 ---
 
@@ -299,10 +310,10 @@ The app covers the full workflow across eight tabs:
 
 ```{=html}
 <div class="use-grid">
-  <div class="use-card"><h4>🏛 Statistical Offices</h4><p>Business, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.</p></div>
-  <div class="use-card"><h4>📐 Survey Methodologists</h4><p>An open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.</p></div>
-  <div class="use-card"><h4>🔬 Applied Researchers</h4><p>Health, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.</p></div>
-  <div class="use-card"><h4>🎓 Teachers & Students</h4><p>The app and interactive plots show how boundaries and allocation affect an estimate, with no code needed.</p></div>
+  <div class="use-card"><h4>Statistical Offices</h4><p>Business, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.</p></div>
+  <div class="use-card"><h4>Survey Methodologists</h4><p>An open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.</p></div>
+  <div class="use-card"><h4>Applied Researchers</h4><p>Health, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.</p></div>
+  <div class="use-card"><h4>Teachers & Students</h4><p>The app and interactive plots show how boundaries and allocation affect an estimate, with no code needed.</p></div>
 </div>
 ```
 
@@ -313,6 +324,7 @@ The app covers the full workflow across eight tabs:
 | Function | Purpose |
 |----------|---------|
 | `strata.data(x, h, n)` | Fit + optimal boundaries + allocation from data |
+| `strata.data(x, h, n, method = "exact")` | Exact optimum on the data |
 | `strata.distr(h, n, distr, params, N)` | Optimal design from assumed distribution |
 | `compare_designs(res)` | Design efficiency vs. SRS and proportional |
 | `plot(res)` | 2D strata density plot |
@@ -330,11 +342,11 @@ The app covers the full workflow across eight tabs:
 citation("stratifyR")
 ```
 
-> Reddy, K. G., & Khan, M. G. M. (2026). *stratifyR: Optimal Stratification of Surveys*. R package version 2.0-1. <https://cran.r-project.org/package=stratifyR>
+> Reddy, K. G., & Khan, M. G. M. (2026). *stratifyR: Optimal Stratification of Univariate Populations*. R package version 2.0-3. <https://cran.r-project.org/package=stratifyR>
 
 ---
 
 ::: {.callout-note appearance="simple"}
 stratifyR is on CRAN: <https://cran.r-project.org/package=stratifyR>  
-A full software paper benchmarking the three solvers is in preparation. We would love to hear how you are using it. Get in touch or leave a comment.
+A full software paper benchmarking the four solvers is in preparation. We would love to hear how you are using it. Get in touch or leave a comment.
 :::
