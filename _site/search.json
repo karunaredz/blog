@@ -7,209 +7,6 @@
     "text": "I am Karuna Reddy, an academic at the University of Auckland, where I work as a Professional Teaching Fellow in Data Science at the School of Computer Science, and also serve as Deputy Director of Data Science. I coordinate courses and supervise Masters and PhD students on research and industry projects.\nMy research is in survey sampling methodology, with a focus on optimal stratification, mathematical programming and optimisation, along with broader interests in data science and machine learning. I did my BSc, MSc and PhD at the University of the South Pacific (USP) in Fiji, and before Auckland, I was a Lecturer in Data Science at USP and also prior to that I was a Research Fellow in Survey Statistics at the Australian National University (ANU) in Canberra.\nOn this blog I share the R packages I build, such as stratifyR and FitVerse, with worked examples and notes on the methods behind them."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html",
-    "href": "posts/stratifyR-2.0-1/index.html",
-    "title": "stratifyR 2.0-1",
-    "section": "",
-    "text": "Optimal Survey Stratification in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"stratifyR\")  ·  library(stratifyR)\nWhen your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.\nstratifyR 2.0-1 works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#quick-start",
-    "href": "posts/stratifyR-2.0-1/index.html#quick-start",
-    "title": "stratifyR 2.0-1",
-    "section": "Quick Start",
-    "text": "Quick Start\nlibrary(stratifyR)\ndata(sugarcane)   # 13,894 cane growers in Fiji\n\n# 4 strata · total sample 500 · Dynamic Programming solver\nres &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nsummary(res)\nOne call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.\nres$OSB       # optimal stratum boundaries\nres$nh        # sample sizes per stratum\nres$Wh        # stratum weights\nres$Vh        # within-stratum variances\nres$WhSh      # each stratum's Neyman cost contribution\nres$WhShTot   # total Neyman cost (lower = better)\nres$distr     # fitted distribution name\nres$fit       # fitted distribution parameters"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#distribution-fitting-step",
-    "href": "posts/stratifyR-2.0-1/index.html#distribution-fitting-step",
-    "title": "stratifyR 2.0-1",
-    "section": "Distribution Fitting Step",
-    "text": "Distribution Fitting Step\nBefore placing any boundaries, strata.data() automatically fits your variable’s distribution from these candidates:\nNormal · Log-Normal · Gamma · Weibull · Exponential · Cauchy · Uniform · Pareto · Triangular · Right-Triangular\nThe fitted distribution is used by the Dynamic Programming solver to compute each stratum’s contribution exactly. This is what makes it reliable on skewed and heavy-tailed data.\n\n\n\n\n\n\nTip\n\n\n\nAlready know the distribution? Use strata.distr() to supply it directly. No data needed (see Design Without Data)."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#three-solvers",
-    "href": "posts/stratifyR-2.0-1/index.html#three-solvers",
-    "title": "stratifyR 2.0-1",
-    "section": "Three Solvers",
-    "text": "Three Solvers\n\n  \n    ⚙ Dynamic Programming\n    method = \"dp\"Globally optimal on a fine grid. Best for heavy-tailed or skewed data. Most reliable choice when boundary accuracy matters most.\n  \n  \n    ⚡ COBYLA\n    method = \"cobyla\"Fast derivative-free solver from many starting points. Matches DP on symmetric/light-tailed data in a fraction of the time. Best for interactive use.\n  \n  \n    🌐 GLOBAL\n    method = \"global\"Two-phase: broad global search + refinement. The safe fast choice for skewed data when DP is too slow.\n  \n\ndp   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\ncob  &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"cobyla\")\nglob &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"global\")\n\nSolution Quality Diagnostics\nFor COBYLA and GLOBAL, check how close the solution is to optimal:\nres$converged        # did the solver converge?\nres$optimality_gap   # Cauchy-Schwarz gap: distance above the lower bound\nres$kkt_residuals    # first-order optimality residuals"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#visualising-the-design",
-    "href": "posts/stratifyR-2.0-1/index.html#visualising-the-design",
-    "title": "stratifyR 2.0-1",
-    "section": "Visualising the Design",
-    "text": "Visualising the Design\n\n2D Density Plot3D Cost SurfaceBoundary Explorer\n\n\nHistogram with fitted density curve and colour-coded strata shading. Immediately shows where the boundaries fall and how the data mass is split.\nplot(res)\n\n\nInteractive plotly surface showing how the Neyman cost changes as boundaries move. Reveals that the optimum sits in a well.\nplot(res, type = \"3d\")\n\n\nOne slider per interior boundary. Drag it and the Neyman cost updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.\nplot(res, type = \"interactive\")"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#design-efficiency-report",
-    "href": "posts/stratifyR-2.0-1/index.html#design-efficiency-report",
-    "title": "stratifyR 2.0-1",
-    "section": "Design Efficiency Report",
-    "text": "Design Efficiency Report\ncd &lt;- compare_designs(res)\ncd\nCompares three designs at the same sample size: Simple Random Sampling, Proportional Allocation, and Optimal Neyman Allocation. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.\n\n\n\n\n\n\nNoteExample result (sugarcane production, n = 500)\n\n\n\nThe optimal stratified sample of 500 growers is as precise as a simple random sample of ~5,395 growers. That is roughly a 90% saving in sample size."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#choosing-the-number-of-strata",
-    "href": "posts/stratifyR-2.0-1/index.html#choosing-the-number-of-strata",
-    "title": "stratifyR 2.0-1",
-    "section": "Choosing the Number of Strata",
-    "text": "Choosing the Number of Strata\nMore strata always lower the Neyman cost, but gains level off quickly. Scan a range and look for the elbow:\nfor (H in 2:6) {\n  r &lt;- strata.data(sugarcane$Production, h = H, n = 500, method = \"dp\")\n  cat(\"H =\", H, \"  Neyman cost =\", round(r$WhShTot, 2), \"\\n\")\n}\nThe Shiny app does this automatically and marks the recommended stratum count on the curve."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#design-without-data",
-    "href": "posts/stratifyR-2.0-1/index.html#design-without-data",
-    "title": "stratifyR 2.0-1",
-    "section": "Design Without Data",
-    "text": "Design Without Data\nYou can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:\n# Household income survey: log-normal, 20,000 units, n = 1,000\ng &lt;- strata.distr(h = 4, initval = 500, dist = 119500,\n                  distr = \"lnorm\",\n                  params = c(meanlog = 9.616, sdlog = 0.703),\n                  n = 1000, N = 20000, method = \"dp\")\nsummary(g)\ncompare_designs(g)\n# Optimal design ~12x more efficient than SRS"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#cost-constrained-allocation",
-    "href": "posts/stratifyR-2.0-1/index.html#cost-constrained-allocation",
-    "title": "stratifyR 2.0-1",
-    "section": "Cost-Constrained Allocation",
-    "text": "Cost-Constrained Allocation\nWhen sampling costs differ by stratum (large units cost more to visit):\nch &lt;- c(20, 30, 50, 80)   # cost per sampled unit, stratum 1 to 4\n\ncost_res &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                        method = \"dp\", cost = TRUE, ch = ch)\nThe cost-aware design adjusts both boundaries and allocation. On the sugarcane data it is about a third cheaper to run in the field at the same total n."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#shiny-app",
-    "href": "posts/stratifyR-2.0-1/index.html#shiny-app",
-    "title": "stratifyR 2.0-1",
-    "section": "Shiny App",
-    "text": "Shiny App\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\"))   # once\nstratifyRApp()\nThe app covers the full workflow across eight tabs:\n\nOptimal Boundaries: per-stratum summary table + 2D density plot\nDesign Comparison: variance, SE, design effect vs. SRS and proportional\nStrata Count: Neyman cost curve with elbow recommendation\nBoundary Methods: DP vs. classical boundary rules side by side\nSample Size: target precision to required sample size\nAllocation: SRS / proportional / Neyman compared\nCost-Constrained: enter per-stratum costs and see the cost-aware design\nVisualise: 2D density, 3D cost surface, interactive boundary explorer"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#what-is-new-in-version-2.0-1",
-    "href": "posts/stratifyR-2.0-1/index.html#what-is-new-in-version-2.0-1",
-    "title": "stratifyR 2.0-1",
-    "section": "What Is New in Version 2.0-1",
-    "text": "What Is New in Version 2.0-1\nNEWTwo additional solvers, COBYLA and GLOBAL, alongside DP. All available through the same method argument.\nNEWCost-constrained allocation via cost = TRUE and ch arguments.\nNEWcompare_designs(): design-efficiency report with design effects and equivalent SRS sizes.\nNEWSolution-quality diagnostics: optimality gap and KKT residuals for fast solvers.\nNEWRicher visualisation: 2D density, interactive 3D cost surface, real-time boundary explorer.\nNEWFull Shiny app via stratifyRApp() covering the entire workflow.\n✔ COMPATFully backward-compatible with version 1.x. Existing strata.data() and strata.distr() calls work unchanged."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#who-is-stratifyr-for",
-    "href": "posts/stratifyR-2.0-1/index.html#who-is-stratifyr-for",
-    "title": "stratifyR 2.0-1",
-    "section": "Who Is stratifyR For?",
-    "text": "Who Is stratifyR For?\n\n  🏛 Statistical OfficesBusiness, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.\n  📐 Survey MethodologistsAn open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.\n  🔬 Applied ResearchersHealth, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.\n  🎓 Teachers & StudentsThe app and interactive plots show how boundaries and allocation affect an estimate, with no code needed."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#quick-reference",
-    "href": "posts/stratifyR-2.0-1/index.html#quick-reference",
-    "title": "stratifyR 2.0-1",
-    "section": "Quick Reference",
-    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nstrata.data(x, h, n)\nFit + optimal boundaries + allocation from data\n\n\nstrata.distr(h, n, distr, params, N)\nOptimal design from assumed distribution\n\n\ncompare_designs(res)\nDesign efficiency vs. SRS and proportional\n\n\nplot(res)\n2D strata density plot\n\n\nplot(res, type = \"3d\")\nInteractive 3D Neyman cost surface\n\n\nplot(res, type = \"interactive\")\nReal-time boundary explorer\n\n\nstratifyRApp()\nLaunch Shiny app\n\n\nsummary(res)\nFull per-stratum table\n\n\nprint(res)\nConsole summary"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#citation",
-    "href": "posts/stratifyR-2.0-1/index.html#citation",
-    "title": "stratifyR 2.0-1",
-    "section": "Citation",
-    "text": "Citation\ncitation(\"stratifyR\")\n\nReddy, K. G., & Khan, M. G. M. (2026). stratifyR: Optimal Stratification of Surveys. R package version 2.0-1. https://cran.r-project.org/package=stratifyR\n\n\n\n\n\n\n\n\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR\nA full software paper benchmarking the three solvers is in preparation. We would love to hear how you are using it. Get in touch or leave a comment."
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html",
-    "href": "posts/fitverse-1.0-2/index.html",
-    "title": "FitVerse",
-    "section": "",
-    "text": "Parametric Distribution Fitting in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"FitVerse\")  ·  library(FitVerse)\nFiguring out which distribution fits your data can take a while. Is it Gamma or Log-Normal? Maybe Weibull? Trying them one at a time is tedious, and eyeballing a histogram only gets you so far.\nFitVerse does the searching for you. Give it your data and it fits all 52 distribution families, estimates parameters using MLE, MOM, or L-moments, ranks every fit, runs four goodness-of-fit tests, and returns a clean summary with plots. One line of code."
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#distributions",
-    "href": "posts/fitverse-1.0-2/index.html#distributions",
-    "title": "FitVerse",
-    "section": "Distributions",
-    "text": "Distributions\nFitVerse covers 52 distribution families across five groups.\n\nSymmetric / UnboundedRight-Skewed (Positive)Heavy-TailedExtreme Value & HydrologicalBounded / Finite Support\n\n\nNormal\nLogistic\nCauchy\nLaplace\nStudent-t\nSkew-Normal\nGeneralised Normal\nAsymmetric Laplace\nJohnson SU\nNormal Inverse Gaussian\nGeneralised Hyperbolic\nTruncated Normal\n\n\nGamma\nLog-Normal\nExponential\nWeibull (2P)\nWeibull (3P)\nLog-Logistic\nInverse Gamma\nInverse Weibull\nParalogistic\nInverse Gaussian\nGeneralised Gamma\nGompertz\nBirnbaum-Saunders\nRayleigh\nHalf-Normal\nExponentiated Weibull\nGamma (3P)\nLog-Normal (3P)\nLindley\nExponentiated Exponential\nNakagami\n\n\nPareto\nBurr XII\nLomax (Pareto Type II)\nDagum\nGB2 (Generalised Beta of the Second Kind)\n\n\nGEV\nGumbel\nGPD\nPearson Type III\nLog-Pearson Type III\nGeneralised Logistic\nKappa-4\nWakeby\n\n\nBeta\nUniform\nTriangular\nRight Triangular\nPERT\nKumaraswamy"
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#estimation-methods",
-    "href": "posts/fitverse-1.0-2/index.html#estimation-methods",
-    "title": "FitVerse",
-    "section": "Estimation Methods",
-    "text": "Estimation Methods\nMLE — Maximum Likelihood\nMOM — Method of Moments\nLMOM — L-Moments\n\n\n\n\n\n\n\n\nMethod\nBest For\nNotes\n\n\n\n\nMLE\nMost situations\nFinds parameters that make observed data most probable\n\n\nMOM\nQuick estimates\nMatches theoretical to sample moments; faster than MLE\n\n\nLMOM\nHydrology; extreme values\nRobust to outliers; ideal for flood peaks, rainfall maxima\n\n\n\nRun all three at once with method = \"ALL\". FitVerse picks the overall best fit across all methods and distributions."
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#core-workflow",
-    "href": "posts/fitverse-1.0-2/index.html#core-workflow",
-    "title": "FitVerse",
-    "section": "Core Workflow",
-    "text": "Core Workflow\n\nQuick Start\nlibrary(FitVerse)\n\n# Built-in precip dataset: annual precipitation, 70 US cities\nx &lt;- as.numeric(precip)\n\n# Fit all 52 distributions by MLE — ranked by AIC\nfit &lt;- fitverse(x, xlab = \"Annual precipitation (inches)\")\n\n\n\n\n\n\nNoteWhat happens in one call\n\n\n\nfitverse() fits all 52 distributions, estimates parameters, ranks by AIC, runs 4 GoF tests, and produces a two-panel diagnostic plot. It all happens automatically.\n\n\n\n\nKey Arguments\nfitverse(x,\n  dists       = \"all\",    # subset: c(\"gamma\",\"lognormal\",\"gev\") or \"all\"\n  method      = \"MLE\",    # \"MLE\", \"MOM\", \"LMOM\", or \"ALL\"\n  criterion   = \"AIC\",    # ranking criterion: \"AIC\" or \"BIC\"\n  xlab        = \"x\",      # axis label for plots and reports\n  plot        = TRUE,     # produce diagnostic plot?\n  interactive = FALSE,    # plotly interactive? (needs plotly)\n  top_n       = 3,        # density curves to overlay\n  verbose     = TRUE)     # print ranked table to console?\n\n\nThe Return Object\nfit$best_fit     # best-fit distribution: params, AIC/BIC, GoF stats\nfit$ranking      # ranked table of all 52 distributions\nfit$all_fits     # full list of every fitted model object\nfit$data         # original data vector\nfit$data_summary # n, mean, sd, skewness, kurtosis\n\n\nS3 Methods\n\nprint(fit) — ranked table + best-fit parameters\nsummary(fit) — full goodness-of-fit table\nplot(fit) — two-panel diagnostic plot\ncoef(fit) — best-fit parameter vector\nlogLik(fit)   AIC(fit)   BIC(fit)\nnobs(fit) — sample size n\nresiduals(fit) — probability residuals\nfitted(fit) — fitted densities at data points\nconfint(fit) — Wald confidence intervals for parameters\nvcov(fit) — variance-covariance matrix\nsave_plot(fit, \"fig.pdf\", dpi = 600) — save plot to file"
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#diagnostic-plot",
-    "href": "posts/fitverse-1.0-2/index.html#diagnostic-plot",
-    "title": "FitVerse",
-    "section": "Diagnostic Plot",
-    "text": "Diagnostic Plot\nEvery call produces a two-panel diagnostic plot by default.\nLeft panel (Density): histogram with the top top_n fitted density curves overlaid. The best-fit distribution is highlighted and its PDF formula is shown on the figure.\nRight panel (Q-Q plot): theoretical quantiles of the best-fit distribution plotted against sample quantiles. Points close to the diagonal mean a good fit.\n# Interactive version (needs plotly)\nfit &lt;- fitverse(x, interactive = TRUE)\n\n# Save without displaying\nsave_plot(fit, file = \"precipitation_fit.png\", dpi = 600)\nsave_plot(fit, file = \"precipitation_fit.pdf\")   # PDF or SVG by extension\n\n\n\n\n\n\nTipL-Moment Ratio Diagram\n\n\n\nFor hydrological and extreme-value work, use the LMRD as an exploratory tool before fitting. It plots sample L-skewness and L-kurtosis against theoretical curves for several distribution families.\nlmrd(x)"
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#goodness-of-fit-tests",
-    "href": "posts/fitverse-1.0-2/index.html#goodness-of-fit-tests",
-    "title": "FitVerse",
-    "section": "Goodness-of-Fit Tests",
-    "text": "Goodness-of-Fit Tests\nFitVerse runs four GoF tests automatically on every distribution:\n\n\n\nTest\nAbbrev.\nSensitive To\n\n\n\n\nKolmogorov-Smirnov\nKS\nOverall CDF deviation\n\n\nAnderson-Darling\nAD\nTail behaviour (strong)\n\n\nCramer-von Mises\nCvM\nOverall CDF deviation\n\n\nChi-Squared\nχ²\nBinned frequency discrepancy\n\n\n\nfit$best_fit$gof                          # GoF stats for best fit\ntbl &lt;- compare_dists(x, method = \"MLE\")  # ranked table only, no plot\nhead(tbl, 10)"
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#probability-tools",
-    "href": "posts/fitverse-1.0-2/index.html#probability-tools",
-    "title": "FitVerse",
-    "section": "Probability Tools",
-    "text": "Probability Tools\ndfitverse(30,   fit)   # density (PDF) at x = 30\npfitverse(40,   fit)   # P(X ≤ 40)  — CDF\nqfitverse(0.95, fit)   # 95th percentile\nrfitverse(100,  fit)   # simulate 100 values from fitted distribution\nWorks identically for all 52 distributions — no need to know the underlying d/p/q/r function names."
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#bootstrap-cis-return-levels",
-    "href": "posts/fitverse-1.0-2/index.html#bootstrap-cis-return-levels",
-    "title": "FitVerse",
-    "section": "Bootstrap CIs & Return Levels",
-    "text": "Bootstrap CIs & Return Levels\n\nParameter CIsReturn LevelsBootstrap CIs for Return Levels\n\n\nboot &lt;- bootstrap_ci(fit, R = 500)\nprint(boot)\n# shape: [4.12, 6.10]   rate: [0.11, 0.17]\n\n\nA T-year return level is the value expected to be exceeded once every T years on average.\nrl &lt;- return_level(fit, T = c(10, 50, 100))\nprint(rl)\n# T =  10:  49.2  [43.1, 56.2]\n# T =  50:  60.9  [53.4, 69.8]\n# T = 100:  65.4  [57.0, 75.9]\n\n\nboot_rl &lt;- bootstrap_ci(fit, R = 500,\n                        return_levels = c(10, 50, 100))\nprint(boot_rl)"
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#batch-fitting",
-    "href": "posts/fitverse-1.0-2/index.html#batch-fitting",
-    "title": "FitVerse",
-    "section": "Batch Fitting",
-    "text": "Batch Fitting\nresults &lt;- fitverse_batch(my_data, method = \"MLE\")\nresults$summary   # best distribution + parameters for each column\nFits all numeric columns of a data frame at once. Useful when you want a quick distributional overview across many variables."
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#report-generation",
-    "href": "posts/fitverse-1.0-2/index.html#report-generation",
-    "title": "FitVerse",
-    "section": "Report Generation",
-    "text": "Report Generation\ngenerate_report(fit,\n  title       = \"Precipitation Data: Distribution Fitting\",\n  author      = \"Karuna Reddy\",\n  output_file = \"report.html\")   # or \"report.pdf\"\n\n# Include bootstrap results\nboot &lt;- bootstrap_ci(fit, R = 500)\ngenerate_report(fit, boot = boot, output_file = \"report.html\")"
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#shiny-app",
-    "href": "posts/fitverse-1.0-2/index.html#shiny-app",
-    "title": "FitVerse",
-    "section": "Shiny App",
-    "text": "Shiny App\nFitVerseApp()\nUpload a CSV, choose distributions, switch between MLE/MOM/LMOM, explore plots interactively, and download a report — no code needed."
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#who-is-fitverse-for",
-    "href": "posts/fitverse-1.0-2/index.html#who-is-fitverse-for",
-    "title": "FitVerse",
-    "section": "Who Is FitVerse For?",
-    "text": "Who Is FitVerse For?\n\n  🌊 HydrologyFit GEV, Gumbel, GPD, Pearson III to flood peaks and rainfall maxima. LMOM + return levels built in.\n  📋 Actuarial ScienceFit Pareto, Burr, GB2, Log-Normal to insurance claims, with full heavy-tail coverage.\n  📊 Survey SamplingIdentify the distribution of a continuous survey variable before model-based estimation or simulation.\n  🎓 TeachingThe Shiny app and clean output let students explore distribution fitting visually without writing code.\n  🔬 Research52 distributions · 3 methods · 4 GoF tests · Bootstrap CIs · report generation — all in one package."
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#quick-reference",
-    "href": "posts/fitverse-1.0-2/index.html#quick-reference",
-    "title": "FitVerse",
-    "section": "Quick Reference",
-    "text": "Quick Reference\n\n\n\nFunction\nPurpose\n\n\n\n\nfitverse(x)\nFit all 52 distributions, rank by AIC\n\n\ncompare_dists(x)\nRanked table only (no plot)\n\n\nlmrd(x)\nL-Moment Ratio Diagram\n\n\nbootstrap_ci(fit, R)\nBootstrap CIs for parameters\n\n\nreturn_level(fit, T)\nReturn level estimates\n\n\ndfitverse(x, fit)\nDensity (PDF)\n\n\npfitverse(q, fit)\nCDF\n\n\nqfitverse(p, fit)\nQuantile function\n\n\nrfitverse(n, fit)\nSimulate from fitted distribution\n\n\nfitverse_batch(df)\nFit all numeric columns\n\n\ngenerate_report(fit)\nHTML / PDF analysis report\n\n\nFitVerseApp()\nLaunch interactive Shiny app\n\n\nsave_plot(fit, file)\nSave diagnostic plot"
-  },
-  {
-    "objectID": "posts/fitverse-1.0-2/index.html#citation",
-    "href": "posts/fitverse-1.0-2/index.html#citation",
-    "title": "FitVerse",
-    "section": "Citation",
-    "text": "Citation\ncitation(\"FitVerse\")\n\nReddy, K. G., & Khan, M. G. M. (2026). FitVerse: Parametric Distribution Fitting for R. R package version 1.0-2. https://cran.r-project.org/package=FitVerse\n\n\n\n\n\n\n\n\nFitVerse is on CRAN: https://cran.r-project.org/package=FitVerse\nWe would love to hear how you are using it. Leave a comment or get in touch directly."
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Blog",
-    "section": "",
-    "text": "stratifyR 2.0-3\n\n\nOptimal Survey Stratification in R\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\nCRAN\n\n\n\nDynamic programming · Exact solver · COBYLA · GLOBAL · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-3\n\n\n\n\n\nOct 21, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nFitVerse\n\n\nParametric Distribution Fitting in R\n\n\n\nR\n\nFitVerse\n\ndistributions\n\nCRAN\n\n\n\n52 distributions · MLE / MOM / L-moments · GoF tests · Bootstrap CI · Shiny app · v1.0-2\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nclusta\n\n\nSpectral, Distribution-Aware and Dynamic-Programming Clustering in R\n\n\n\nR\n\nclusta\n\nclustering\n\nCRAN\n\n\n\nS-MPDP · 9 clustering methods · Globally optimal 1-D partitions · Non-convex clusters · Bootstrap stability · Benchmarks · Shiny app · v1.0-1\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy, Gabiriele Bulivou and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nmultistrata\n\n\nMultivariate Optimum Stratification and Sample Allocation for Surveys\n\n\n\nR\n\nmultistrata\n\nsurvey sampling\n\nstratification\n\nCRAN\n\n\n\nJoint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
-  },
-  {
     "objectID": "posts/multistrata-1.0-1/index.html",
     "href": "posts/multistrata-1.0-1/index.html",
     "title": "multistrata",
@@ -350,6 +147,202 @@
     "text": "Citation\ncitation(\"multistrata\")\n\nReddy, K. G., & Khan, M. G. M. (2026). multistrata: Multivariate Optimum Stratification and Sample Allocation for Surveys. R package version 1.0-1. https://cran.r-project.org/package=multistrata\n\n\n\n\n\n\n\n\nmultistrata is on CRAN: https://cran.r-project.org/package=multistrata We would love to hear how you are using it. Leave a comment or get in touch directly."
   },
   {
+    "objectID": "posts/fitverse-1.0-2/index.html",
+    "href": "posts/fitverse-1.0-2/index.html",
+    "title": "FitVerse",
+    "section": "",
+    "text": "Parametric Distribution Fitting in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"FitVerse\")  ·  library(FitVerse)\nFiguring out which distribution fits your data can take a while. Is it Gamma or Log-Normal? Maybe Weibull? Trying them one at a time is tedious, and eyeballing a histogram only gets you so far.\nFitVerse does the searching for you. Give it your data and it fits all 52 distribution families, estimates parameters using MLE, MOM, or L-moments, ranks every fit, runs four goodness-of-fit tests, and returns a clean summary with plots. One line of code."
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#distributions",
+    "href": "posts/fitverse-1.0-2/index.html#distributions",
+    "title": "FitVerse",
+    "section": "Distributions",
+    "text": "Distributions\nFitVerse covers 52 distribution families across five groups.\n\nSymmetric / UnboundedRight-Skewed (Positive)Heavy-TailedExtreme Value & HydrologicalBounded / Finite Support\n\n\nNormal\nLogistic\nCauchy\nLaplace\nStudent-t\nSkew-Normal\nGeneralised Normal\nAsymmetric Laplace\nJohnson SU\nNormal Inverse Gaussian\nGeneralised Hyperbolic\nTruncated Normal\n\n\nGamma\nLog-Normal\nExponential\nWeibull (2P)\nWeibull (3P)\nLog-Logistic\nInverse Gamma\nInverse Weibull\nParalogistic\nInverse Gaussian\nGeneralised Gamma\nGompertz\nBirnbaum-Saunders\nRayleigh\nHalf-Normal\nExponentiated Weibull\nGamma (3P)\nLog-Normal (3P)\nLindley\nExponentiated Exponential\nNakagami\n\n\nPareto\nBurr XII\nLomax (Pareto Type II)\nDagum\nGB2 (Generalised Beta of the Second Kind)\n\n\nGEV\nGumbel\nGPD\nPearson Type III\nLog-Pearson Type III\nGeneralised Logistic\nKappa-4\nWakeby\n\n\nBeta\nUniform\nTriangular\nRight Triangular\nPERT\nKumaraswamy"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#estimation-methods",
+    "href": "posts/fitverse-1.0-2/index.html#estimation-methods",
+    "title": "FitVerse",
+    "section": "Estimation Methods",
+    "text": "Estimation Methods\nMLE — Maximum Likelihood\nMOM — Method of Moments\nLMOM — L-Moments\n\n\n\n\n\n\n\n\nMethod\nBest For\nNotes\n\n\n\n\nMLE\nMost situations\nFinds parameters that make observed data most probable\n\n\nMOM\nQuick estimates\nMatches theoretical to sample moments; faster than MLE\n\n\nLMOM\nHydrology; extreme values\nRobust to outliers; ideal for flood peaks, rainfall maxima\n\n\n\nRun all three at once with method = \"ALL\". FitVerse picks the overall best fit across all methods and distributions."
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#core-workflow",
+    "href": "posts/fitverse-1.0-2/index.html#core-workflow",
+    "title": "FitVerse",
+    "section": "Core Workflow",
+    "text": "Core Workflow\n\nQuick Start\nlibrary(FitVerse)\n\n# Built-in precip dataset: annual precipitation, 70 US cities\nx &lt;- as.numeric(precip)\n\n# Fit all 52 distributions by MLE — ranked by AIC\nfit &lt;- fitverse(x, xlab = \"Annual precipitation (inches)\")\n\n\n\n\n\n\nNoteWhat happens in one call\n\n\n\nfitverse() fits all 52 distributions, estimates parameters, ranks by AIC, runs 4 GoF tests, and produces a two-panel diagnostic plot. It all happens automatically.\n\n\n\n\nKey Arguments\nfitverse(x,\n  dists       = \"all\",    # subset: c(\"gamma\",\"lognormal\",\"gev\") or \"all\"\n  method      = \"MLE\",    # \"MLE\", \"MOM\", \"LMOM\", or \"ALL\"\n  criterion   = \"AIC\",    # ranking criterion: \"AIC\" or \"BIC\"\n  xlab        = \"x\",      # axis label for plots and reports\n  plot        = TRUE,     # produce diagnostic plot?\n  interactive = FALSE,    # plotly interactive? (needs plotly)\n  top_n       = 3,        # density curves to overlay\n  verbose     = TRUE)     # print ranked table to console?\n\n\nThe Return Object\nfit$best_fit     # best-fit distribution: params, AIC/BIC, GoF stats\nfit$ranking      # ranked table of all 52 distributions\nfit$all_fits     # full list of every fitted model object\nfit$data         # original data vector\nfit$data_summary # n, mean, sd, skewness, kurtosis\n\n\nS3 Methods\n\nprint(fit) — ranked table + best-fit parameters\nsummary(fit) — full goodness-of-fit table\nplot(fit) — two-panel diagnostic plot\ncoef(fit) — best-fit parameter vector\nlogLik(fit)   AIC(fit)   BIC(fit)\nnobs(fit) — sample size n\nresiduals(fit) — probability residuals\nfitted(fit) — fitted densities at data points\nconfint(fit) — Wald confidence intervals for parameters\nvcov(fit) — variance-covariance matrix\nsave_plot(fit, \"fig.pdf\", dpi = 600) — save plot to file"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#diagnostic-plot",
+    "href": "posts/fitverse-1.0-2/index.html#diagnostic-plot",
+    "title": "FitVerse",
+    "section": "Diagnostic Plot",
+    "text": "Diagnostic Plot\nEvery call produces a two-panel diagnostic plot by default.\nLeft panel (Density): histogram with the top top_n fitted density curves overlaid. The best-fit distribution is highlighted and its PDF formula is shown on the figure.\nRight panel (Q-Q plot): theoretical quantiles of the best-fit distribution plotted against sample quantiles. Points close to the diagonal mean a good fit.\n# Interactive version (needs plotly)\nfit &lt;- fitverse(x, interactive = TRUE)\n\n# Save without displaying\nsave_plot(fit, file = \"precipitation_fit.png\", dpi = 600)\nsave_plot(fit, file = \"precipitation_fit.pdf\")   # PDF or SVG by extension\n\n\n\n\n\n\nTipL-Moment Ratio Diagram\n\n\n\nFor hydrological and extreme-value work, use the LMRD as an exploratory tool before fitting. It plots sample L-skewness and L-kurtosis against theoretical curves for several distribution families.\nlmrd(x)"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#goodness-of-fit-tests",
+    "href": "posts/fitverse-1.0-2/index.html#goodness-of-fit-tests",
+    "title": "FitVerse",
+    "section": "Goodness-of-Fit Tests",
+    "text": "Goodness-of-Fit Tests\nFitVerse runs four GoF tests automatically on every distribution:\n\n\n\nTest\nAbbrev.\nSensitive To\n\n\n\n\nKolmogorov-Smirnov\nKS\nOverall CDF deviation\n\n\nAnderson-Darling\nAD\nTail behaviour (strong)\n\n\nCramer-von Mises\nCvM\nOverall CDF deviation\n\n\nChi-Squared\nχ²\nBinned frequency discrepancy\n\n\n\nfit$best_fit$gof                          # GoF stats for best fit\ntbl &lt;- compare_dists(x, method = \"MLE\")  # ranked table only, no plot\nhead(tbl, 10)"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#probability-tools",
+    "href": "posts/fitverse-1.0-2/index.html#probability-tools",
+    "title": "FitVerse",
+    "section": "Probability Tools",
+    "text": "Probability Tools\ndfitverse(30,   fit)   # density (PDF) at x = 30\npfitverse(40,   fit)   # P(X ≤ 40)  — CDF\nqfitverse(0.95, fit)   # 95th percentile\nrfitverse(100,  fit)   # simulate 100 values from fitted distribution\nWorks identically for all 52 distributions — no need to know the underlying d/p/q/r function names."
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#bootstrap-cis-return-levels",
+    "href": "posts/fitverse-1.0-2/index.html#bootstrap-cis-return-levels",
+    "title": "FitVerse",
+    "section": "Bootstrap CIs & Return Levels",
+    "text": "Bootstrap CIs & Return Levels\n\nParameter CIsReturn LevelsBootstrap CIs for Return Levels\n\n\nboot &lt;- bootstrap_ci(fit, R = 500)\nprint(boot)\n# shape: [4.12, 6.10]   rate: [0.11, 0.17]\n\n\nA T-year return level is the value expected to be exceeded once every T years on average.\nrl &lt;- return_level(fit, T = c(10, 50, 100))\nprint(rl)\n# T =  10:  49.2  [43.1, 56.2]\n# T =  50:  60.9  [53.4, 69.8]\n# T = 100:  65.4  [57.0, 75.9]\n\n\nboot_rl &lt;- bootstrap_ci(fit, R = 500,\n                        return_levels = c(10, 50, 100))\nprint(boot_rl)"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#batch-fitting",
+    "href": "posts/fitverse-1.0-2/index.html#batch-fitting",
+    "title": "FitVerse",
+    "section": "Batch Fitting",
+    "text": "Batch Fitting\nresults &lt;- fitverse_batch(my_data, method = \"MLE\")\nresults$summary   # best distribution + parameters for each column\nFits all numeric columns of a data frame at once. Useful when you want a quick distributional overview across many variables."
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#report-generation",
+    "href": "posts/fitverse-1.0-2/index.html#report-generation",
+    "title": "FitVerse",
+    "section": "Report Generation",
+    "text": "Report Generation\ngenerate_report(fit,\n  title       = \"Precipitation Data: Distribution Fitting\",\n  author      = \"Karuna Reddy\",\n  output_file = \"report.html\")   # or \"report.pdf\"\n\n# Include bootstrap results\nboot &lt;- bootstrap_ci(fit, R = 500)\ngenerate_report(fit, boot = boot, output_file = \"report.html\")"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#shiny-app",
+    "href": "posts/fitverse-1.0-2/index.html#shiny-app",
+    "title": "FitVerse",
+    "section": "Shiny App",
+    "text": "Shiny App\nFitVerseApp()\nUpload a CSV, choose distributions, switch between MLE/MOM/LMOM, explore plots interactively, and download a report — no code needed."
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#who-is-fitverse-for",
+    "href": "posts/fitverse-1.0-2/index.html#who-is-fitverse-for",
+    "title": "FitVerse",
+    "section": "Who Is FitVerse For?",
+    "text": "Who Is FitVerse For?\n\n  🌊 HydrologyFit GEV, Gumbel, GPD, Pearson III to flood peaks and rainfall maxima. LMOM + return levels built in.\n  📋 Actuarial ScienceFit Pareto, Burr, GB2, Log-Normal to insurance claims, with full heavy-tail coverage.\n  📊 Survey SamplingIdentify the distribution of a continuous survey variable before model-based estimation or simulation.\n  🎓 TeachingThe Shiny app and clean output let students explore distribution fitting visually without writing code.\n  🔬 Research52 distributions · 3 methods · 4 GoF tests · Bootstrap CIs · report generation — all in one package."
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#quick-reference",
+    "href": "posts/fitverse-1.0-2/index.html#quick-reference",
+    "title": "FitVerse",
+    "section": "Quick Reference",
+    "text": "Quick Reference\n\n\n\nFunction\nPurpose\n\n\n\n\nfitverse(x)\nFit all 52 distributions, rank by AIC\n\n\ncompare_dists(x)\nRanked table only (no plot)\n\n\nlmrd(x)\nL-Moment Ratio Diagram\n\n\nbootstrap_ci(fit, R)\nBootstrap CIs for parameters\n\n\nreturn_level(fit, T)\nReturn level estimates\n\n\ndfitverse(x, fit)\nDensity (PDF)\n\n\npfitverse(q, fit)\nCDF\n\n\nqfitverse(p, fit)\nQuantile function\n\n\nrfitverse(n, fit)\nSimulate from fitted distribution\n\n\nfitverse_batch(df)\nFit all numeric columns\n\n\ngenerate_report(fit)\nHTML / PDF analysis report\n\n\nFitVerseApp()\nLaunch interactive Shiny app\n\n\nsave_plot(fit, file)\nSave diagnostic plot"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-2/index.html#citation",
+    "href": "posts/fitverse-1.0-2/index.html#citation",
+    "title": "FitVerse",
+    "section": "Citation",
+    "text": "Citation\ncitation(\"FitVerse\")\n\nReddy, K. G., & Khan, M. G. M. (2026). FitVerse: Parametric Distribution Fitting for R. R package version 1.0-2. https://cran.r-project.org/package=FitVerse\n\n\n\n\n\n\n\n\nFitVerse is on CRAN: https://cran.r-project.org/package=FitVerse\nWe would love to hear how you are using it. Leave a comment or get in touch directly."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html",
+    "href": "posts/stratifyR-2.0-3/index.html",
+    "title": "stratifyR 2.0-3",
+    "section": "",
+    "text": "Optimal Survey Stratification in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"stratifyR\")  ·  library(stratifyR)\nWhen your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.\nstratifyR 2.0-3 works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#quick-start",
+    "href": "posts/stratifyR-2.0-3/index.html#quick-start",
+    "title": "stratifyR 2.0-3",
+    "section": "Quick Start",
+    "text": "Quick Start\nlibrary(stratifyR)\ndata(sugarcane)   # 13,894 cane growers in Fiji\n\n# 4 strata · total sample 500 · Dynamic Programming solver\nres &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nsummary(res)\nOne call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.\nres$OSB       # optimal stratum boundaries\nres$nh        # sample sizes per stratum\nres$Wh        # stratum weights\nres$Vh        # within-stratum variances\nres$WhSh      # each stratum's Neyman cost contribution\nres$WhShTot   # total Neyman cost (lower = better)\nres$distr     # fitted distribution name\nres$fit       # fitted distribution parameters"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#distribution-fitting-step",
+    "href": "posts/stratifyR-2.0-3/index.html#distribution-fitting-step",
+    "title": "stratifyR 2.0-3",
+    "section": "Distribution Fitting Step",
+    "text": "Distribution Fitting Step\nBefore placing any boundaries, strata.data() automatically fits your variable’s distribution from these candidates:\nNormal · Log-Normal · Gamma · Weibull · Exponential · Cauchy · Uniform · Pareto · Triangular · Right-Triangular\nThe fitted distribution is used by the Dynamic Programming solver to compute each stratum’s contribution exactly. In 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.\n\n\n\n\n\n\nTip\n\n\n\nAlready know the distribution? Use strata.distr() to supply it directly. No data needed (see Design Without Data)."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#four-solvers",
+    "href": "posts/stratifyR-2.0-3/index.html#four-solvers",
+    "title": "stratifyR 2.0-3",
+    "section": "Four Solvers",
+    "text": "Four Solvers\n\n  \n    Dynamic Programming\n    method = \"dp\"The default. Globally optimal on a fine grid for the fitted distribution, followed by a short local refinement that can only improve the answer.\n  \n  \n    EXACT\n    method = \"exact\"Dynamic programming on the data themselves. Returns the best possible partition of your sample. Exact for up to 20,000 distinct cut points.\n  \n  \n    COBYLA\n    method = \"cobyla\"Fast multi-start solver. One start comes from a quick coarse exact search, so it copes well with very skewed data. Best for interactive use.\n  \n  \n    GLOBAL\n    method = \"global\"Two phases: a broad DIRECT-L search on the rank scale, then a local refinement. A safe, fast choice for skewed data.\n  \n\ndp   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nex   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"exact\")\ncob  &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"cobyla\")\nglob &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"global\")\n\nSolution Quality Diagnostics\nFor COBYLA and GLOBAL, check how close the solution is to optimal:\nres$converged        # did the solver converge?\nres$optimality_gap   # Cauchy-Schwarz gap: distance above the lower bound\nres$kkt_residuals    # first-order optimality residuals"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#visualising-the-design",
+    "href": "posts/stratifyR-2.0-3/index.html#visualising-the-design",
+    "title": "stratifyR 2.0-3",
+    "section": "Visualising the Design",
+    "text": "Visualising the Design\n\n2D Density Plot3D Cost SurfaceBoundary Explorer\n\n\nHistogram with fitted density curve and colour-coded strata shading. Immediately shows where the boundaries fall and how the data mass is split.\nplot(res)\n\n\nInteractive plotly surface showing how the Neyman cost changes as boundaries move. Reveals that the optimum sits in a well.\nplot(res, type = \"3d\")\n\n\nOne slider per interior boundary. Drag it and the Neyman cost updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.\nplot(res, type = \"interactive\")"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#design-efficiency-report",
+    "href": "posts/stratifyR-2.0-3/index.html#design-efficiency-report",
+    "title": "stratifyR 2.0-3",
+    "section": "Design Efficiency Report",
+    "text": "Design Efficiency Report\ncd &lt;- compare_designs(res)\ncd\nCompares three designs at the same sample size: Simple Random Sampling, Proportional Allocation, and Optimal Neyman Allocation. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.\n\n\n\n\n\n\nNoteReading the report\n\n\n\nThe equivalent SRS size tells you how many units a simple random sample would need to match the precision of your stratified design. On skewed data such as the sugarcane production, it is many times larger than the stratified sample."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#choosing-the-number-of-strata",
+    "href": "posts/stratifyR-2.0-3/index.html#choosing-the-number-of-strata",
+    "title": "stratifyR 2.0-3",
+    "section": "Choosing the Number of Strata",
+    "text": "Choosing the Number of Strata\nMore strata always lower the Neyman cost, but gains level off quickly. Scan a range and look for the elbow:\nfor (H in 2:6) {\n  r &lt;- strata.data(sugarcane$Production, h = H, n = 500, method = \"dp\")\n  cat(\"H =\", H, \"  Neyman cost =\", round(r$WhShTot, 2), \"\\n\")\n}\nThe Shiny app does this automatically and marks the recommended stratum count on the curve."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#design-without-data",
+    "href": "posts/stratifyR-2.0-3/index.html#design-without-data",
+    "title": "stratifyR 2.0-3",
+    "section": "Design Without Data",
+    "text": "Design Without Data\nYou can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:\n# Household income survey: log-normal, 20,000 units, n = 1,000\ng &lt;- strata.distr(h = 4, initval = 500, dist = 119500,\n                  distr = \"lnorm\",\n                  params = c(meanlog = 9.616, sdlog = 0.703),\n                  n = 1000, N = 20000, method = \"dp\")\nsummary(g)\ncompare_designs(g)"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#cost-constrained-allocation",
+    "href": "posts/stratifyR-2.0-3/index.html#cost-constrained-allocation",
+    "title": "stratifyR 2.0-3",
+    "section": "Cost-Constrained Allocation",
+    "text": "Cost-Constrained Allocation\nWhen sampling costs differ by stratum (large units cost more to visit):\nch &lt;- c(20, 30, 50, 80)   # cost per sampled unit, stratum 1 to 4\n\ncost_res &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                        method = \"dp\", cost = TRUE, ch = ch)\nThe cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design’s, so it is the better choice when the budget, rather than the sample size, is fixed."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#shiny-app",
+    "href": "posts/stratifyR-2.0-3/index.html#shiny-app",
+    "title": "stratifyR 2.0-3",
+    "section": "Shiny App",
+    "text": "Shiny App\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\"))   # once\nstratifyRApp()\nThe app covers the full workflow across eight tabs:\n\nOptimal Boundaries: per-stratum summary table + 2D density plot\nDesign Comparison: variance, SE, design effect vs. SRS and proportional\nStrata Count: Neyman cost curve with elbow recommendation\nBoundary Methods: DP vs. classical boundary rules side by side\nSample Size: target precision to required sample size\nAllocation: SRS / proportional / Neyman compared\nCost-Constrained: enter per-stratum costs and see the cost-aware design\nVisualise: 2D density, 3D cost surface, interactive boundary explorer"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#what-is-new-in-version-2.0-3",
+    "href": "posts/stratifyR-2.0-3/index.html#what-is-new-in-version-2.0-3",
+    "title": "stratifyR 2.0-3",
+    "section": "What Is New in Version 2.0-3",
+    "text": "What Is New in Version 2.0-3\nVersions 2.0-2 and 2.0-3 are accuracy releases. They came out of a large simulation study (ten distributions, 20 random seeds, two to six strata), checked against the exact optimum.\nNEWExact solver: method = \"exact\" runs dynamic programming on the data and returns the best possible partition. It is also the reference the other solvers are checked against.\nBETTERCOBYLA and GLOBAL now reach the exact optimum, or come within about 0.1% of it, on every population in the study, including very heavy-tailed ones such as Pareto and Cauchy samples.\nBETTERDP adds a short local refinement after the grid search, and two traceback fixes make it more robust on heavy-tailed data.\nFIXDistribution fitting: Pareto and triangular fits now work inside the package, with a numerically stable Pareto likelihood and robust Cauchy starting values.\nFIXBoundaries and costs: boundaries are kept at full precision, every unit is always counted, and tied values are never split across strata.\nFIXstrata.distr() now gives stratum sizes that add up to N exactly, and gives a clear message when the range lies outside a uniform or triangular distribution.\nCOMPATFully backward-compatible. Existing strata.data() and strata.distr() calls work unchanged.\nAlready in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, compare_designs(), solution-quality diagnostics, the 2D, 3D and interactive plots, and the Shiny app."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#who-is-stratifyr-for",
+    "href": "posts/stratifyR-2.0-3/index.html#who-is-stratifyr-for",
+    "title": "stratifyR 2.0-3",
+    "section": "Who Is stratifyR For?",
+    "text": "Who Is stratifyR For?\n\n  Statistical OfficesBusiness, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.\n  Survey MethodologistsAn open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.\n  Applied ResearchersHealth, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.\n  Teachers & StudentsThe app and interactive plots show how boundaries and allocation affect an estimate, with no code needed."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#quick-reference",
+    "href": "posts/stratifyR-2.0-3/index.html#quick-reference",
+    "title": "stratifyR 2.0-3",
+    "section": "Quick Reference",
+    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nstrata.data(x, h, n)\nFit + optimal boundaries + allocation from data\n\n\nstrata.data(x, h, n, method = \"exact\")\nExact optimum on the data\n\n\nstrata.distr(h, n, distr, params, N)\nOptimal design from assumed distribution\n\n\ncompare_designs(res)\nDesign efficiency vs. SRS and proportional\n\n\nplot(res)\n2D strata density plot\n\n\nplot(res, type = \"3d\")\nInteractive 3D Neyman cost surface\n\n\nplot(res, type = \"interactive\")\nReal-time boundary explorer\n\n\nstratifyRApp()\nLaunch Shiny app\n\n\nsummary(res)\nFull per-stratum table\n\n\nprint(res)\nConsole summary"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#citation",
+    "href": "posts/stratifyR-2.0-3/index.html#citation",
+    "title": "stratifyR 2.0-3",
+    "section": "Citation",
+    "text": "Citation\ncitation(\"stratifyR\")\n\nReddy, K. G., & Khan, M. G. M. (2026). stratifyR: Optimal Stratification of Univariate Populations. R package version 2.0-3. https://cran.r-project.org/package=stratifyR\n\n\n\n\n\n\n\n\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR\nA full software paper benchmarking the four solvers is in preparation. We would love to hear how you are using it. Get in touch or leave a comment."
+  },
+  {
     "objectID": "posts/clusta-1.0-1/index.html",
     "href": "posts/clusta-1.0-1/index.html",
     "title": "clusta",
@@ -462,101 +455,10 @@
     "text": "Citation\ncitation(\"clusta\")\n\nReddy, K. G., Bulivou, G., & Khan, M. G. M. (2026). clusta: Spectral, Distribution-Aware and Dynamic-Programming Clustering. R package version 1.0-1. https://cran.r-project.org/package=clusta\n\n\n\n\n\n\n\n\nclusta is on CRAN: https://cran.r-project.org/package=clusta A companion paper describing the S-MPDP method and benchmarks is in preparation. We would love to hear how you are using it."
   },
   {
-    "objectID": "posts/stratifyR-2.0-3/index.html",
-    "href": "posts/stratifyR-2.0-3/index.html",
-    "title": "stratifyR 2.0-3",
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Blog",
     "section": "",
-    "text": "Optimal Survey Stratification in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"stratifyR\")  ·  library(stratifyR)\nWhen your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.\nstratifyR 2.0-3 works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#quick-start",
-    "href": "posts/stratifyR-2.0-3/index.html#quick-start",
-    "title": "stratifyR 2.0-3",
-    "section": "Quick Start",
-    "text": "Quick Start\nlibrary(stratifyR)\ndata(sugarcane)   # 13,894 cane growers in Fiji\n\n# 4 strata · total sample 500 · Dynamic Programming solver\nres &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nsummary(res)\nOne call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.\nres$OSB       # optimal stratum boundaries\nres$nh        # sample sizes per stratum\nres$Wh        # stratum weights\nres$Vh        # within-stratum variances\nres$WhSh      # each stratum's Neyman cost contribution\nres$WhShTot   # total Neyman cost (lower = better)\nres$distr     # fitted distribution name\nres$fit       # fitted distribution parameters"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#distribution-fitting-step",
-    "href": "posts/stratifyR-2.0-3/index.html#distribution-fitting-step",
-    "title": "stratifyR 2.0-3",
-    "section": "Distribution Fitting Step",
-    "text": "Distribution Fitting Step\nBefore placing any boundaries, strata.data() automatically fits your variable’s distribution from these candidates:\nNormal · Log-Normal · Gamma · Weibull · Exponential · Cauchy · Uniform · Pareto · Triangular · Right-Triangular\nThe fitted distribution is used by the Dynamic Programming solver to compute each stratum’s contribution exactly. In 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.\n\n\n\n\n\n\nTip\n\n\n\nAlready know the distribution? Use strata.distr() to supply it directly. No data needed (see Design Without Data)."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#four-solvers",
-    "href": "posts/stratifyR-2.0-3/index.html#four-solvers",
-    "title": "stratifyR 2.0-3",
-    "section": "Four Solvers",
-    "text": "Four Solvers\n\n  \n    Dynamic Programming\n    method = \"dp\"The default. Globally optimal on a fine grid for the fitted distribution, followed by a short local refinement that can only improve the answer.\n  \n  \n    EXACT\n    method = \"exact\"Dynamic programming on the data themselves. Returns the best possible partition of your sample. Exact for up to 20,000 distinct cut points.\n  \n  \n    COBYLA\n    method = \"cobyla\"Fast multi-start solver. One start comes from a quick coarse exact search, so it copes well with very skewed data. Best for interactive use.\n  \n  \n    GLOBAL\n    method = \"global\"Two phases: a broad DIRECT-L search on the rank scale, then a local refinement. A safe, fast choice for skewed data.\n  \n\ndp   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nex   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"exact\")\ncob  &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"cobyla\")\nglob &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"global\")\n\nSolution Quality Diagnostics\nFor COBYLA and GLOBAL, check how close the solution is to optimal:\nres$converged        # did the solver converge?\nres$optimality_gap   # Cauchy-Schwarz gap: distance above the lower bound\nres$kkt_residuals    # first-order optimality residuals"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#visualising-the-design",
-    "href": "posts/stratifyR-2.0-3/index.html#visualising-the-design",
-    "title": "stratifyR 2.0-3",
-    "section": "Visualising the Design",
-    "text": "Visualising the Design\n\n2D Density Plot3D Cost SurfaceBoundary Explorer\n\n\nHistogram with fitted density curve and colour-coded strata shading. Immediately shows where the boundaries fall and how the data mass is split.\nplot(res)\n\n\nInteractive plotly surface showing how the Neyman cost changes as boundaries move. Reveals that the optimum sits in a well.\nplot(res, type = \"3d\")\n\n\nOne slider per interior boundary. Drag it and the Neyman cost updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.\nplot(res, type = \"interactive\")"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#design-efficiency-report",
-    "href": "posts/stratifyR-2.0-3/index.html#design-efficiency-report",
-    "title": "stratifyR 2.0-3",
-    "section": "Design Efficiency Report",
-    "text": "Design Efficiency Report\ncd &lt;- compare_designs(res)\ncd\nCompares three designs at the same sample size: Simple Random Sampling, Proportional Allocation, and Optimal Neyman Allocation. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.\n\n\n\n\n\n\nNoteReading the report\n\n\n\nThe equivalent SRS size tells you how many units a simple random sample would need to match the precision of your stratified design. On skewed data such as the sugarcane production, it is many times larger than the stratified sample."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#choosing-the-number-of-strata",
-    "href": "posts/stratifyR-2.0-3/index.html#choosing-the-number-of-strata",
-    "title": "stratifyR 2.0-3",
-    "section": "Choosing the Number of Strata",
-    "text": "Choosing the Number of Strata\nMore strata always lower the Neyman cost, but gains level off quickly. Scan a range and look for the elbow:\nfor (H in 2:6) {\n  r &lt;- strata.data(sugarcane$Production, h = H, n = 500, method = \"dp\")\n  cat(\"H =\", H, \"  Neyman cost =\", round(r$WhShTot, 2), \"\\n\")\n}\nThe Shiny app does this automatically and marks the recommended stratum count on the curve."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#design-without-data",
-    "href": "posts/stratifyR-2.0-3/index.html#design-without-data",
-    "title": "stratifyR 2.0-3",
-    "section": "Design Without Data",
-    "text": "Design Without Data\nYou can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:\n# Household income survey: log-normal, 20,000 units, n = 1,000\ng &lt;- strata.distr(h = 4, initval = 500, dist = 119500,\n                  distr = \"lnorm\",\n                  params = c(meanlog = 9.616, sdlog = 0.703),\n                  n = 1000, N = 20000, method = \"dp\")\nsummary(g)\ncompare_designs(g)"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#cost-constrained-allocation",
-    "href": "posts/stratifyR-2.0-3/index.html#cost-constrained-allocation",
-    "title": "stratifyR 2.0-3",
-    "section": "Cost-Constrained Allocation",
-    "text": "Cost-Constrained Allocation\nWhen sampling costs differ by stratum (large units cost more to visit):\nch &lt;- c(20, 30, 50, 80)   # cost per sampled unit, stratum 1 to 4\n\ncost_res &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                        method = \"dp\", cost = TRUE, ch = ch)\nThe cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design’s, so it is the better choice when the budget, rather than the sample size, is fixed."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#shiny-app",
-    "href": "posts/stratifyR-2.0-3/index.html#shiny-app",
-    "title": "stratifyR 2.0-3",
-    "section": "Shiny App",
-    "text": "Shiny App\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\"))   # once\nstratifyRApp()\nThe app covers the full workflow across eight tabs:\n\nOptimal Boundaries: per-stratum summary table + 2D density plot\nDesign Comparison: variance, SE, design effect vs. SRS and proportional\nStrata Count: Neyman cost curve with elbow recommendation\nBoundary Methods: DP vs. classical boundary rules side by side\nSample Size: target precision to required sample size\nAllocation: SRS / proportional / Neyman compared\nCost-Constrained: enter per-stratum costs and see the cost-aware design\nVisualise: 2D density, 3D cost surface, interactive boundary explorer"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#what-is-new-in-version-2.0-3",
-    "href": "posts/stratifyR-2.0-3/index.html#what-is-new-in-version-2.0-3",
-    "title": "stratifyR 2.0-3",
-    "section": "What Is New in Version 2.0-3",
-    "text": "What Is New in Version 2.0-3\nVersions 2.0-2 and 2.0-3 are accuracy releases. They came out of a large simulation study (ten distributions, 20 random seeds, two to six strata), checked against the exact optimum.\nNEWExact solver: method = \"exact\" runs dynamic programming on the data and returns the best possible partition. It is also the reference the other solvers are checked against.\nBETTERCOBYLA and GLOBAL now reach the exact optimum, or come within about 0.1% of it, on every population in the study, including very heavy-tailed ones such as Pareto and Cauchy samples.\nBETTERDP adds a short local refinement after the grid search, and two traceback fixes make it more robust on heavy-tailed data.\nFIXDistribution fitting: Pareto and triangular fits now work inside the package, with a numerically stable Pareto likelihood and robust Cauchy starting values.\nFIXBoundaries and costs: boundaries are kept at full precision, every unit is always counted, and tied values are never split across strata.\nFIXstrata.distr() now gives stratum sizes that add up to N exactly, and gives a clear message when the range lies outside a uniform or triangular distribution.\nCOMPATFully backward-compatible. Existing strata.data() and strata.distr() calls work unchanged.\nAlready in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, compare_designs(), solution-quality diagnostics, the 2D, 3D and interactive plots, and the Shiny app."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#who-is-stratifyr-for",
-    "href": "posts/stratifyR-2.0-3/index.html#who-is-stratifyr-for",
-    "title": "stratifyR 2.0-3",
-    "section": "Who Is stratifyR For?",
-    "text": "Who Is stratifyR For?\n\n  Statistical OfficesBusiness, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.\n  Survey MethodologistsAn open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.\n  Applied ResearchersHealth, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.\n  Teachers & StudentsThe app and interactive plots show how boundaries and allocation affect an estimate, with no code needed."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#quick-reference",
-    "href": "posts/stratifyR-2.0-3/index.html#quick-reference",
-    "title": "stratifyR 2.0-3",
-    "section": "Quick Reference",
-    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nstrata.data(x, h, n)\nFit + optimal boundaries + allocation from data\n\n\nstrata.data(x, h, n, method = \"exact\")\nExact optimum on the data\n\n\nstrata.distr(h, n, distr, params, N)\nOptimal design from assumed distribution\n\n\ncompare_designs(res)\nDesign efficiency vs. SRS and proportional\n\n\nplot(res)\n2D strata density plot\n\n\nplot(res, type = \"3d\")\nInteractive 3D Neyman cost surface\n\n\nplot(res, type = \"interactive\")\nReal-time boundary explorer\n\n\nstratifyRApp()\nLaunch Shiny app\n\n\nsummary(res)\nFull per-stratum table\n\n\nprint(res)\nConsole summary"
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-3/index.html#citation",
-    "href": "posts/stratifyR-2.0-3/index.html#citation",
-    "title": "stratifyR 2.0-3",
-    "section": "Citation",
-    "text": "Citation\ncitation(\"stratifyR\")\n\nReddy, K. G., & Khan, M. G. M. (2026). stratifyR: Optimal Stratification of Univariate Populations. R package version 2.0-3. https://cran.r-project.org/package=stratifyR\n\n\n\n\n\n\n\n\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR\nA full software paper benchmarking the four solvers is in preparation. We would love to hear how you are using it. Get in touch or leave a comment."
+    "text": "stratifyR 2.0-3\n\n\nOptimal Survey Stratification in R\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\nCRAN\n\n\n\nDynamic programming · Exact solver · COBYLA · GLOBAL · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-3\n\n\n\n\n\nOct 21, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nFitVerse\n\n\nParametric Distribution Fitting in R\n\n\n\nR\n\nFitVerse\n\ndistributions\n\nCRAN\n\n\n\n52 distributions · MLE / MOM / L-moments · GoF tests · Bootstrap CI · Shiny app · v1.0-2\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nclusta\n\n\nSpectral, Distribution-Aware and Dynamic-Programming Clustering in R\n\n\n\nR\n\nclusta\n\nclustering\n\nCRAN\n\n\n\nS-MPDP · 9 clustering methods · Globally optimal 1-D partitions · Non-convex clusters · Bootstrap stability · Benchmarks · Shiny app · v1.0-1\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy, Gabiriele Bulivou and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nmultistrata\n\n\nMultivariate Optimum Stratification and Sample Allocation for Surveys\n\n\n\nR\n\nmultistrata\n\nsurvey sampling\n\nstratification\n\nCRAN\n\n\n\nJoint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
   }
 ]
