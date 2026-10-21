@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Karuna G. Reddy and M. G. M. Khan">
+<meta name="dcterms.date" content="2026-10-04">
+<meta name="description" content="Joint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1">
+
+<title>multistrata – Karuna Reddy</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bb62276ab45c84d9efd712f51ff97b5a.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-32dbd2e7a0ea03348f8f0160de0e4df6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Karuna Reddy</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#quick-start" id="toc-quick-start" class="nav-link active" data-scroll-target="#quick-start">Quick Start</a></li>
+  <li><a href="#core-function-stratify_multi" id="toc-core-function-stratify_multi" class="nav-link" data-scroll-target="#core-function-stratify_multi">Core Function: stratify_multi()</a>
+  <ul class="collapse">
+  <li><a href="#key-arguments" id="toc-key-arguments" class="nav-link" data-scroll-target="#key-arguments">Key arguments</a></li>
+  </ul></li>
+  <li><a href="#two-weight-modes" id="toc-two-weight-modes" class="nav-link" data-scroll-target="#two-weight-modes">Two Weight Modes</a></li>
+  <li><a href="#two-solvers" id="toc-two-solvers" class="nav-link" data-scroll-target="#two-solvers">Two Solvers</a>
+  <ul class="collapse">
+  <li><a href="#checking-the-solution" id="toc-checking-the-solution" class="nav-link" data-scroll-target="#checking-the-solution">Checking the solution</a></li>
+  </ul></li>
+  <li><a href="#reading-the-results" id="toc-reading-the-results" class="nav-link" data-scroll-target="#reading-the-results">Reading the Results</a></li>
+  <li><a href="#precision-driven-design-find_n" id="toc-precision-driven-design-find_n" class="nav-link" data-scroll-target="#precision-driven-design-find_n">Precision-Driven Design: find_n()</a></li>
+  <li><a href="#choosing-the-strata-grid-choose_h" id="toc-choosing-the-strata-grid-choose_h" class="nav-link" data-scroll-target="#choosing-the-strata-grid-choose_h">Choosing the Strata Grid: choose_H()</a></li>
+  <li><a href="#priority-trade-off-omega_sweep" id="toc-priority-trade-off-omega_sweep" class="nav-link" data-scroll-target="#priority-trade-off-omega_sweep">Priority Trade-Off: omega_sweep()</a></li>
+  <li><a href="#cost-constrained-design" id="toc-cost-constrained-design" class="nav-link" data-scroll-target="#cost-constrained-design">Cost-Constrained Design</a></li>
+  <li><a href="#cv-constrained-allocation" id="toc-cv-constrained-allocation" class="nav-link" data-scroll-target="#cv-constrained-allocation">CV-Constrained Allocation</a></li>
+  <li><a href="#design-without-data-stratify_multi_density" id="toc-design-without-data-stratify_multi_density" class="nav-link" data-scroll-target="#design-without-data-stratify_multi_density">Design Without Data: stratify_multi_density()</a></li>
+  <li><a href="#survey-integration" id="toc-survey-integration" class="nav-link" data-scroll-target="#survey-integration">Survey Integration</a>
+  <ul class="collapse">
+  <li><a href="#assign_strata" id="toc-assign_strata" class="nav-link" data-scroll-target="#assign_strata">assign_strata()</a></li>
+  <li><a href="#as_svydesign" id="toc-as_svydesign" class="nav-link" data-scroll-target="#as_svydesign">as_svydesign()</a></li>
+  </ul></li>
+  <li><a href="#visualisation" id="toc-visualisation" class="nav-link" data-scroll-target="#visualisation">Visualisation</a></li>
+  <li><a href="#benchmarking" id="toc-benchmarking" class="nav-link" data-scroll-target="#benchmarking">Benchmarking</a></li>
+  <li><a href="#simulated-populations" id="toc-simulated-populations" class="nav-link" data-scroll-target="#simulated-populations">Simulated Populations</a></li>
+  <li><a href="#shiny-app" id="toc-shiny-app" class="nav-link" data-scroll-target="#shiny-app">Shiny App</a></li>
+  <li><a href="#who-is-multistrata-for" id="toc-who-is-multistrata-for" class="nav-link" data-scroll-target="#who-is-multistrata-for">Who Is multistrata For?</a></li>
+  <li><a href="#quick-reference" id="toc-quick-reference" class="nav-link" data-scroll-target="#quick-reference">Quick Reference</a></li>
+  <li><a href="#citation" id="toc-citation" class="nav-link" data-scroll-target="#citation">Citation</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">multistrata</h1>
+<p class="subtitle lead">Multivariate Optimum Stratification and Sample Allocation for Surveys</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">R</div>
+    <div class="quarto-category">multistrata</div>
+    <div class="quarto-category">survey sampling</div>
+    <div class="quarto-category">stratification</div>
+    <div class="quarto-category">CRAN</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Joint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Karuna G. Reddy and M. G. M. Khan </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 4, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<style>
+.pkg-hero {
+  display: flex; align-items: center; gap: 28px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #062A40 0%, #0B4F6C 55%, #0D7377 100%);
+  border-radius: 10px; margin-bottom: 28px; color: white;
+}
+.pkg-hero img { width: 110px; height: auto; flex-shrink: 0; border-radius: 6px; }
+.pkg-hero h1 { margin: 0 0 4px 0; font-size: 2.4rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
+.pkg-hero .subtitle { font-size: 1.05rem; color: #80DEEA; margin: 0 0 10px 0; }
+.pkg-hero .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pkg-hero .badges a img, .pkg-hero .badges img { height: 22px; vertical-align: middle; border-radius: 0; width: auto; }
+.pkg-hero .install-box {
+  background: rgba(0,0,0,0.4); border-radius: 6px; padding: 10px 14px;
+  font-family: monospace; font-size: 0.9rem; color: #80DEEA;
+  margin-top: 10px; border-left: 3px solid #FFD54F;
+}
+.fn-card {
+  border-left: 4px solid #0B4F6C; padding: 12px 16px;
+  background: #f0f9fb; border-radius: 0 6px 6px 0; margin: 12px 0; line-height: 1.9;
+}
+.fn-card code { background: #B2EBF2; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
+.solver-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+.solver-card { border-radius: 8px; padding: 14px 16px; }
+.solver-cob  { background: #e0f7fa; border-top: 4px solid #00838F; }
+.solver-slsqp { background: #e8f5e9; border-top: 4px solid #2E7D32; }
+.solver-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; }
+.solver-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
+.mode-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+.mode-card { border-radius: 8px; padding: 14px 16px; }
+.mode-emp  { background: #fff3e0; border-top: 4px solid #E65100; }
+.mode-par  { background: #f3e5f5; border-top: 4px solid #6A1B9A; }
+.mode-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; }
+.mode-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
+.use-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.use-card { border-radius: 8px; padding: 14px; background: white; border: 1px solid #B2EBF2; }
+.use-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; color: #0B4F6C; }
+.use-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
+.new-item { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; }
+.new-item .tag { background: #0B4F6C; color: white; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.helper-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+.helper-card { border-radius: 8px; padding: 13px 15px; background: #f0f9fb; border: 1px solid #B2EBF2; }
+.helper-card h4 { margin: 0 0 4px 0; font-size: 0.88rem; color: #0B4F6C; }
+.helper-card p  { margin: 0; font-size: 0.78rem; color: #444; line-height: 1.4; }
+</style>
+
+<div class="pkg-hero">
+  <img src="multistrata-logo.png" alt="multistrata logo">
+  <div>
+    <h1>multistrata</h1>
+    <div class="subtitle">Multivariate Optimum Stratification and Sample Allocation</div>
+    <div class="badges">
+      <a href="https://cran.r-project.org/package=multistrata"><img src="https://www.r-pkg.org/badges/version/multistrata" alt="CRAN"></a>
+      <a href="https://cran.r-project.org/package=multistrata"><img src="https://cranlogs.r-pkg.org/badges/multistrata" alt="Downloads"></a>
+      <img src="https://img.shields.io/badge/license-GPL--3-blue.svg" alt="GPL-3">
+      <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1+">
+    </div>
+    <div class="install-box">
+      install.packages("multistrata") &nbsp;·&nbsp; library(multistrata)
+    </div>
+  </div>
+</div>
+<p>stratifyR finds optimal boundaries for surveys stratified on a single variable. In practice, many surveys stratify on two or more variables at the same time and need to estimate several study variables well. multistrata extends stratifyR to that general case.</p>
+<p>It jointly determines boundaries and sample allocation across multiple stratification variables and multiple study variables, minimising a weighted composite variance objective. The algorithm alternates between a boundary update and an exact generalised Neyman allocation, embedded in a multi-start scheme to avoid poor local solutions.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Connection to stratifyR
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>multistrata is the multivariate extension of the Reddy and Khan (2018) framework. Every single-variable design that stratifyR handles is a special case of what multistrata solves. The function names are different but the ideas are the same.</p>
+</div>
+</div>
+<hr>
+<section id="quick-start" class="level2">
+<h2 class="anchored" data-anchor-id="quick-start">Quick Start</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(multistrata)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># simulate a two-variable population</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>pop <span class="ot">&lt;-</span> <span class="fu">sim_population</span>(<span class="at">N =</span> <span class="dv">5000</span>, <span class="at">p =</span> <span class="dv">2</span>, <span class="at">q =</span> <span class="dv">2</span>, <span class="at">scenario =</span> <span class="st">"independent"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># joint stratification on X1 and X2, estimating Y1 and Y2</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">stratify_multi</span>(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">data       =</span> pop[, <span class="fu">c</span>(<span class="st">"X1"</span>, <span class="st">"X2"</span>)],</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">study_vars =</span> pop[, <span class="fu">c</span>(<span class="st">"Y1"</span>, <span class="st">"Y2"</span>)],</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">H_vec      =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>),          <span class="co"># 3 strata per variable = 9 total strata</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total    =</span> <span class="dv">500</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">omega      =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>),      <span class="co"># equal weight on both study variables</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_starts   =</span> <span class="dv">50</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(res)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(res)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>H_vec</code> gives the number of strata for each stratification variable. With <code>H_vec = c(3, 3)</code> you get a 3x3 grid of 9 strata in the joint space.</p>
+<hr>
+</section>
+<section id="core-function-stratify_multi" class="level2">
+<h2 class="anchored" data-anchor-id="core-function-stratify_multi">Core Function: stratify_multi()</h2>
+<p>The main function takes your population frame, your study variables, and a strata grid. It returns optimal boundaries, stratum sample sizes, and diagnostics.</p>
+<section id="key-arguments" class="level3">
+<h3 class="anchored" data-anchor-id="key-arguments">Key arguments</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">stratify_multi</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  data,                    <span class="co"># stratification variables (N x p data frame or matrix)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  study_vars,              <span class="co"># study (target) variables (N x q)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  H_vec,                   <span class="co"># strata per variable, e.g. c(3, 3) or c(4, 2, 3)</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  n_total,                 <span class="co"># total sample size</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">omega      =</span> <span class="cn">NULL</span>,       <span class="co"># study-variable weights (default: equal)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">constraint =</span> <span class="st">"n_total"</span>,  <span class="co"># "n_total" or "cost"</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost_total =</span> <span class="cn">NULL</span>,       <span class="co"># budget C* (when constraint = "cost")</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost_fixed =</span> <span class="dv">0</span>,          <span class="co"># fixed overhead deducted from budget</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost_per_unit =</span> <span class="dv">1</span>,       <span class="co"># per-unit cost (scalar or H-vector)</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">cv_targets =</span> <span class="cn">NULL</span>,       <span class="co"># max CV per study variable, e.g. c(0.03, 0.03)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">distributions =</span> <span class="cn">NULL</span>,    <span class="co"># NULL (empirical) or "auto" or named list of families</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">method     =</span> <span class="st">"cobyla"</span>,   <span class="co"># boundary solver: "cobyla" or "slsqp"</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_starts   =</span> <span class="dv">50</span>,         <span class="co"># number of random starts</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_min      =</span> <span class="dv">2</span>,          <span class="co"># minimum sample per stratum</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">verbose    =</span> <span class="cn">FALSE</span>,      <span class="co"># print per-start progress</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">trace      =</span> <span class="cn">FALSE</span>       <span class="co"># store per-iteration objective sequence</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Reproducibility
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The multi-start scheme draws its initial boundaries at random. Always set a seed before any design you intend to report.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">stratify_multi</span>(data, study_vars, <span class="at">H_vec =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">3</span>), <span class="at">n_total =</span> <span class="dv">600</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="two-weight-modes" class="level2">
+<h2 class="anchored" data-anchor-id="two-weight-modes">Two Weight Modes</h2>
+<p>The stratum weights Wh (the fraction of the population in each stratum) can be estimated in two ways.</p>
+<div class="mode-grid">
+  <div class="mode-card mode-emp">
+    <h4 class="anchored">Empirical mode (default)</h4>
+    <p>Wh is the sample proportion of units falling in each stratum. Uses only the data, no distributional assumptions. Set <code>distributions = NULL</code>.</p>
+  </div>
+  <div class="mode-card mode-par">
+    <h4 class="anchored">Parametric mode</h4>
+    <p>Wh is computed from marginal CDF differences under a fitted distribution. Set <code>distributions = "auto"</code> for AIC-based family selection, or supply families directly.</p>
+  </div>
+</div>
+<p>Auto mode picks the best-fitting marginal family per stratification variable:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">stratify_multi</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  data, study_vars, <span class="at">H_vec =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>), <span class="at">n_total =</span> <span class="dv">500</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">distributions =</span> <span class="st">"auto"</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># res$.meta$distributions shows the selected families</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>You can also supply families directly:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dists <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">X1 =</span> <span class="fu">list</span>(<span class="at">family =</span> <span class="st">"lnorm"</span>, <span class="at">meanlog =</span> <span class="fl">1.2</span>, <span class="at">sdlog =</span> <span class="fl">0.8</span>),</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">X2 =</span> <span class="fu">list</span>(<span class="at">family =</span> <span class="st">"gamma"</span>, <span class="at">shape =</span> <span class="fl">2.5</span>, <span class="at">rate =</span> <span class="fl">0.4</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">stratify_multi</span>(data, study_vars, <span class="at">H_vec =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>), <span class="at">n_total =</span> <span class="dv">500</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">distributions =</span> dists)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Supported families: <code>norm</code>, <code>lnorm</code>, <code>gamma</code>, <code>exp</code>, <code>weibull</code>, <code>beta</code>, <code>unif</code>, <code>chisq</code>, <code>t</code>, <code>cauchy</code>, <code>logis</code>, <code>pareto</code>, <code>triang</code>. When FitVerse is installed, auto mode can also search its 52 families.</p>
+<hr>
+</section>
+<section id="two-solvers" class="level2">
+<h2 class="anchored" data-anchor-id="two-solvers">Two Solvers</h2>
+<div class="solver-grid">
+  <div class="solver-card solver-cob">
+    <h4 class="anchored">COBYLA (default)</h4>
+    <p><code>method = "cobyla"</code><br>Derivative-free constrained optimisation. Works in both empirical and parametric modes. Robust and fast for most problems.</p>
+  </div>
+  <div class="solver-card solver-slsqp">
+    <h4 class="anchored">SLSQP</h4>
+    <p><code>method = "slsqp"</code><br>Gradient-based solver using the closed-form weight gradient (Section 4.2 of the paper). Parametric mode only. Faster convergence when a good distribution fit is available.</p>
+  </div>
+</div>
+<section id="checking-the-solution" class="level3">
+<h3 class="anchored" data-anchor-id="checking-the-solution">Checking the solution</h3>
+<p>After fitting, check the quality diagnostics:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>objective        <span class="co"># optimal composite variance Phi*</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>optimality_gap   <span class="co"># gap above the lower bound (0 = at the bound)</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>kkt_residual     <span class="co"># first-order stationarity residual</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>kkt_ok           <span class="co"># TRUE if residual is below tol_kkt</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>converged        <span class="co"># did the solver converge within max_iter?</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>n_starts_run     <span class="co"># number of random starts completed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="reading-the-results" class="level2">
+<h2 class="anchored" data-anchor-id="reading-the-results">Reading the Results</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>boundaries       <span class="co"># list of p boundary vectors (one per stratification variable)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>allocation       <span class="co"># stratum sample sizes (integer vector of length H_total)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>stratum_stats    <span class="co"># per-stratum N_h, W_h, n_h, A_h, within-stratum variances</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The print method shows a formatted summary:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(res)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<pre><code>================================================
+  Multivariate Optimum Stratification (multistrata)
+================================================
+  Stratification variables : 2  (X1, X2)
+  Study variables          : 2  (Y1, Y2)
+  Strata per variable      : 3 x 3
+  Total strata             : 9
+  ...
+  Composite variance (Phi) : 0.0048
+  Optimality gap           : 0.12%
+  Converged                : YES
+  Multi-starts used        : 50</code></pre>
+<hr>
+</section>
+<section id="precision-driven-design-find_n" class="level2">
+<h2 class="anchored" data-anchor-id="precision-driven-design-find_n">Precision-Driven Design: find_n()</h2>
+<p>The usual question is “given n, what is the best design?”. Sometimes the question runs the other way: “what is the smallest n that keeps all CVs below a target?”. <code>find_n()</code> answers that.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="fu">find_n</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data       =</span> pop[, <span class="fu">c</span>(<span class="st">"X1"</span>, <span class="st">"X2"</span>)],</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">study_vars =</span> pop[, <span class="fu">c</span>(<span class="st">"Y1"</span>, <span class="st">"Y2"</span>)],</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">cv_targets =</span> <span class="fu">c</span>(<span class="fl">0.03</span>, <span class="fl">0.03</span>),     <span class="co"># max 3% CV on Y1 and Y2</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">H_vec      =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_starts   =</span> <span class="dv">20</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fn)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># fn$n          -- smallest feasible total sample size</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># fn$allocation -- stratum sizes at that n</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co"># fn$cv_achieved -- actual CVs achieved</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>It works by integer bisection over the CV-constrained allocation sub-problem. Boundaries are fixed from a single optimisation run and reused, which keeps the computation fast.</p>
+<hr>
+</section>
+<section id="choosing-the-strata-grid-choose_h" class="level2">
+<h2 class="anchored" data-anchor-id="choosing-the-strata-grid-choose_h">Choosing the Strata Grid: choose_H()</h2>
+<p>More strata always reduce variance, but the gains level off. <code>choose_H()</code> traces the optimal composite variance across a family of candidate grids and flags the elbow.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ch <span class="ot">&lt;-</span> <span class="fu">choose_H</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data       =</span> pop[, <span class="fu">c</span>(<span class="st">"X1"</span>, <span class="st">"X2"</span>)],</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">study_vars =</span> pop[, <span class="fu">c</span>(<span class="st">"Y1"</span>, <span class="st">"Y2"</span>)],</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total    =</span> <span class="dv">500</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">H_each     =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">5</span>,       <span class="co"># tries 2x2, 3x3, 4x4, 5x5</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_starts   =</span> <span class="dv">10</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot       =</span> <span class="cn">TRUE</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>ch<span class="sc">$</span>table            <span class="co"># Phi*, optimality gap, relative gain per grid</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>ch<span class="sc">$</span>recommended      <span class="co"># recommended H_vec (elbow)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The plot shows the Phi* curve with the recommended grid marked. Go beyond the recommended grid only if the additional precision is worth the operational cost of more strata.</p>
+<hr>
+</section>
+<section id="priority-trade-off-omega_sweep" class="level2">
+<h2 class="anchored" data-anchor-id="priority-trade-off-omega_sweep">Priority Trade-Off: omega_sweep()</h2>
+<p>When you have two study variables and do not know how to weight them, <code>omega_sweep()</code> shows how the optimal design changes as the priority shifts from one to the other.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>sw <span class="ot">&lt;-</span> <span class="fu">omega_sweep</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data       =</span> pop[, <span class="fu">c</span>(<span class="st">"X1"</span>, <span class="st">"X2"</span>)],</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">study_vars =</span> pop[, <span class="fu">c</span>(<span class="st">"Y1"</span>, <span class="st">"Y2"</span>)],</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">H_vec      =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total    =</span> <span class="dv">500</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_grid     =</span> <span class="dv">11</span>,           <span class="co"># 0%, 10%, ..., 100% weight on Y1</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_starts   =</span> <span class="dv">10</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sw)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The plot traces Phi* and per-variable variance against the weight on Y1. The flat middle region, if there is one, shows where the design is robust to the exact choice of weights.</p>
+<hr>
+</section>
+<section id="cost-constrained-design" class="level2">
+<h2 class="anchored" data-anchor-id="cost-constrained-design">Cost-Constrained Design</h2>
+<p>When sampling units in different strata cost different amounts, supply a per-stratum cost vector and a total budget instead of a fixed n.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>res_cost <span class="ot">&lt;-</span> <span class="fu">stratify_multi</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data          =</span> pop[, <span class="fu">c</span>(<span class="st">"X1"</span>, <span class="st">"X2"</span>)],</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">study_vars    =</span> pop[, <span class="fu">c</span>(<span class="st">"Y1"</span>, <span class="st">"Y2"</span>)],</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">H_vec         =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">constraint    =</span> <span class="st">"cost"</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost_total    =</span> <span class="dv">50000</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost_fixed    =</span> <span class="dv">2000</span>,         <span class="co"># fixed overhead (travel, setup)</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost_per_unit =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">20</span>, <span class="dv">5</span>), <span class="fu">rep</span>(<span class="dv">40</span>, <span class="dv">4</span>)),   <span class="co"># H_total = 9 strata</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_starts      =</span> <span class="dv">30</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The cost-aware design adjusts both boundaries and allocation. Strata with high per-unit costs get fewer units and the boundaries may shift to rebalance.</p>
+<hr>
+</section>
+<section id="cv-constrained-allocation" class="level2">
+<h2 class="anchored" data-anchor-id="cv-constrained-allocation">CV-Constrained Allocation</h2>
+<p>Specify maximum acceptable coefficients of variation for each study variable instead of (or alongside) a total sample size.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>res_cv <span class="ot">&lt;-</span> <span class="fu">stratify_multi</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data       =</span> pop[, <span class="fu">c</span>(<span class="st">"X1"</span>, <span class="st">"X2"</span>)],</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">study_vars =</span> pop[, <span class="fu">c</span>(<span class="st">"Y1"</span>, <span class="st">"Y2"</span>)],</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">H_vec      =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total    =</span> <span class="dv">800</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">cv_targets =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.04</span>),   <span class="co"># 5% CV on Y1, 4% on Y2</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_starts   =</span> <span class="dv">30</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>res_cv<span class="sc">$</span>cv_achieved    <span class="co"># CVs actually achieved by the optimal allocation</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="design-without-data-stratify_multi_density" class="level2">
+<h2 class="anchored" data-anchor-id="design-without-data-stratify_multi_density">Design Without Data: stratify_multi_density()</h2>
+<p>You can plan a stratified sample before collecting data, using assumed marginal distributions from a past survey or pilot study.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>dists <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">X1 =</span> <span class="fu">list</span>(<span class="at">family =</span> <span class="st">"lnorm"</span>, <span class="at">meanlog =</span> <span class="fl">1.8</span>, <span class="at">sdlog =</span> <span class="fl">0.7</span>),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">X2 =</span> <span class="fu">list</span>(<span class="at">family =</span> <span class="st">"gamma"</span>, <span class="at">shape =</span> <span class="fl">3.0</span>,   <span class="at">rate  =</span> <span class="fl">0.5</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>res_dens <span class="ot">&lt;-</span> <span class="fu">stratify_multi_density</span>(</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">distributions =</span> dists,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">H_vec         =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>),</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total       =</span> <span class="dv">400</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">omega         =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Stratum weights are computed from the marginal CDFs. Study-variable moments come from Gauss-Kronrod quadrature of the marginal densities. This matches the empirical mode in the large-sample limit.</p>
+<hr>
+</section>
+<section id="survey-integration" class="level2">
+<h2 class="anchored" data-anchor-id="survey-integration">Survey Integration</h2>
+<p>Two functions take the optimal design into production.</p>
+<section id="assign_strata" class="level3">
+<h3 class="anchored" data-anchor-id="assign_strata">assign_strata()</h3>
+<p>Applies the boundaries from a fitted design to any set of units: an estimation frame, a fresh census extract, or hold-out data.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fit on a pilot sample, score the full frame</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>strata_labels <span class="ot">&lt;-</span> <span class="fu">assign_strata</span>(res, <span class="at">newdata =</span> full_frame[, <span class="fu">c</span>(<span class="st">"X1"</span>, <span class="st">"X2"</span>)])</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(strata_labels)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The function matches columns by name when available, so you do not need to worry about column order.</p>
+</section>
+<section id="as_svydesign" class="level3">
+<h3 class="anchored" data-anchor-id="as_svydesign">as_svydesign()</h3>
+<p>Exports a <code>survey::svydesign</code> object ready for estimation with the survey package or srvyr.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">as_svydesign</span>(res, <span class="at">frame =</span> pop)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co"># standard survey estimation from here</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">svymean</span>(<span class="sc">~</span>Y1 <span class="sc">+</span> Y2, <span class="at">design =</span> svy)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co"># or just a labelled frame for srvyr</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>labelled_frame <span class="ot">&lt;-</span> <span class="fu">as_svydesign</span>(res, <span class="at">frame =</span> pop, <span class="at">frame_only =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co"># columns .stratum, .N_h, .n_h, .weight are added automatically</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="visualisation" class="level2">
+<h2 class="anchored" data-anchor-id="visualisation">Visualisation</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Boundary Diagram</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Allocation Bar Chart</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">Weights Bar Chart</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" role="tab" aria-controls="tabset-1-4" aria-selected="false" href="">Omega Sweep</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_strata</span>(res)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For one stratification variable: density with boundary walls. For two variables: a 3-D perspective plot of the joint density with boundary planes. The same function works for any number of variables.</p>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(res, <span class="at">which =</span> <span class="st">"allocation"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Bar chart of stratum sample sizes. Shows how the allocation spreads across strata.</p>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(res, <span class="at">which =</span> <span class="st">"weights"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Stratum weights Wh as a bar chart. Useful for checking how uniformly the population is distributed across strata.</p>
+</div>
+<div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>sw <span class="ot">&lt;-</span> <span class="fu">omega_sweep</span>(data, study_vars, <span class="at">H_vec =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>), <span class="at">n_total =</span> <span class="dv">500</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sw)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Traces the precision trade-off as the weight shifts between two study variables.</p>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="benchmarking" class="level2">
+<h2 class="anchored" data-anchor-id="benchmarking">Benchmarking</h2>
+<p><code>benchmark_designs()</code> compares the multistrata design against simpler alternatives: proportional allocation, equal allocation, and two classical boundary rules (Dalenius-Hodges and Gunning-Horgan).</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>bm <span class="ot">&lt;-</span> <span class="fu">benchmark_designs</span>(res, pop)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(bm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Results show composite variance and per-variable CVs for each design at the same total sample size.</p>
+<hr>
+</section>
+<section id="simulated-populations" class="level2">
+<h2 class="anchored" data-anchor-id="simulated-populations">Simulated Populations</h2>
+<p><code>sim_population()</code> generates test populations with known structures.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>pop <span class="ot">&lt;-</span> <span class="fu">sim_population</span>(<span class="at">N =</span> <span class="dv">5000</span>, <span class="at">p =</span> <span class="dv">2</span>, <span class="at">q =</span> <span class="dv">2</span>, <span class="at">scenario =</span> <span class="st">"independent"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Available scenarios:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 43%">
+<col style="width: 56%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Scenario</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>"independent"</code></td>
+<td>Stratification and study variables uncorrelated</td>
+</tr>
+<tr class="even">
+<td><code>"correlated"</code></td>
+<td>Moderate positive correlation between X and Y variables</td>
+</tr>
+<tr class="odd">
+<td><code>"weibull_pareto"</code></td>
+<td>Heavy-tailed establishment-survey archetype</td>
+</tr>
+<tr class="even">
+<td><code>"copula"</code></td>
+<td>Dependent stratification variables via a Gaussian copula with log-normal margins</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="shiny-app" class="level2">
+<h2 class="anchored" data-anchor-id="shiny-app">Shiny App</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"shiny"</span>, <span class="st">"bslib"</span>, <span class="st">"DT"</span>, <span class="st">"plotly"</span>))   <span class="co"># once</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">run_app</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The app exposes the full workflow without writing code:</p>
+<div class="fn-card">
+<strong>Data input:</strong> upload your own CSV, generate a simulated population, or use one of the three built-in datasets<br>
+<strong>Design:</strong> set H_vec, n_total or budget, solver, weight mode, and omega<br>
+<strong>find_n:</strong> enter CV targets, get the minimum n<br>
+<strong>choose_H:</strong> scan candidate grids and view the elbow<br>
+<strong>Omega explorer:</strong> slide the priority weight and watch the design change<br>
+<strong>Benchmark:</strong> compare against proportional, equal, and classical rules<br>
+<strong>Visualise:</strong> boundary diagram, allocation bar chart, cost surface<br>
+<strong>Export:</strong> download report (PDF/HTML) and a reproducible R script with the set.seed() call
+</div>
+<p>The generated R script includes the exact <code>set.seed()</code> call for the run shown on screen, so the design can be reproduced from the console.</p>
+<hr>
+</section>
+<section id="who-is-multistrata-for" class="level2">
+<h2 class="anchored" data-anchor-id="who-is-multistrata-for">Who Is multistrata For?</h2>
+<div class="use-grid">
+  <div class="use-card"><h4 class="anchored">🏛 National Statistical Offices</h4><p>Business and agricultural surveys that stratify on size and sector simultaneously, with precision targets on multiple indicators.</p></div>
+  <div class="use-card"><h4 class="anchored">📐 Survey Methodologists</h4><p>A reproducible, open implementation with formal convergence guarantees, optimality gaps, and KKT diagnostics for peer review.</p></div>
+  <div class="use-card"><h4 class="anchored">🔬 Applied Researchers</h4><p>Health, agricultural, economic, and environmental studies where more than one stratification variable is available at the design stage.</p></div>
+  <div class="use-card"><h4 class="anchored">📊 Planning-Stage Design</h4><p>Use the density mode and find_n() to plan a complete survey before collecting data, from distributional assumptions alone.</p></div>
+  <div class="use-card"><h4 class="anchored">🎓 Teachers and Students</h4><p>The Shiny app and sim_population() make the concepts of joint stratification and the Neyman trade-off easy to explore.</p></div>
+</div>
+<hr>
+</section>
+<section id="quick-reference" class="level2">
+<h2 class="anchored" data-anchor-id="quick-reference">Quick Reference</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 52%">
+<col style="width: 47%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>stratify_multi(data, study_vars, H_vec, n_total)</code></td>
+<td>Joint boundary + allocation optimisation</td>
+</tr>
+<tr class="even">
+<td><code>stratify_multi_density(distributions, H_vec, n_total)</code></td>
+<td>Design from marginal densities, no data needed</td>
+</tr>
+<tr class="odd">
+<td><code>find_n(data, study_vars, cv_targets, H_vec)</code></td>
+<td>Smallest n meeting all CV targets</td>
+</tr>
+<tr class="even">
+<td><code>choose_H(data, study_vars, n_total)</code></td>
+<td>Scan strata grids and find the elbow</td>
+</tr>
+<tr class="odd">
+<td><code>omega_sweep(data, study_vars, H_vec, n_total)</code></td>
+<td>Priority trade-off between two study variables</td>
+</tr>
+<tr class="even">
+<td><code>assign_strata(result, newdata)</code></td>
+<td>Score any frame into the optimal strata</td>
+</tr>
+<tr class="odd">
+<td><code>as_svydesign(result, frame)</code></td>
+<td>Export a survey::svydesign object</td>
+</tr>
+<tr class="even">
+<td><code>benchmark_designs(result, pop)</code></td>
+<td>Compare vs proportional, equal, and classical rules</td>
+</tr>
+<tr class="odd">
+<td><code>sim_population(N, p, q, scenario)</code></td>
+<td>Generate a test population</td>
+</tr>
+<tr class="even">
+<td><code>plot_strata(result)</code></td>
+<td>Boundary diagram (1-D to n-D)</td>
+</tr>
+<tr class="odd">
+<td><code>plot(result, which = "allocation")</code></td>
+<td>Allocation bar chart</td>
+</tr>
+<tr class="even">
+<td><code>run_app()</code></td>
+<td>Launch interactive Shiny app</td>
+</tr>
+<tr class="odd">
+<td><code>print(result)</code></td>
+<td>Formatted design summary</td>
+</tr>
+<tr class="even">
+<td><code>summary(result)</code></td>
+<td>Per-stratum table</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="citation" class="level2">
+<h2 class="anchored" data-anchor-id="citation">Citation</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">citation</span>(<span class="st">"multistrata"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<blockquote class="blockquote">
+<p>Reddy, K. G., &amp; Khan, M. G. M. (2026). <em>multistrata: Multivariate Optimum Stratification and Sample Allocation for Surveys</em>. R package version 1.0-1. <a href="https://cran.r-project.org/package=multistrata" class="uri">https://cran.r-project.org/package=multistrata</a></p>
+</blockquote>
+<hr>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>multistrata is on CRAN: <a href="https://cran.r-project.org/package=multistrata" class="uri">https://cran.r-project.org/package=multistrata</a> We would love to hear how you are using it. Leave a comment or get in touch directly.</p>
+</div>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/karunaredz\.github\.io\/blog\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

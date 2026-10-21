@@ -4,105 +4,147 @@
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "I am Karuna Reddy, an academic at the University of Auckland, where I work as a Professional Teaching Fellow in Data Science at the School of Computer Science, and also serve as Deputy Director of Data Science. I coordinate courses and supervise Masters and PhD students on research and industry projects.\nMy research is in survey sampling methodology, with a focus on optimal stratification, mathematical programming and optimisation, along with broader interests in data science and machine learning. I did my BSc, MSc and PhD at the University of the South Pacific in Fiji, and before Auckland I was a Research Fellow in Survey Statistics at the Australian National University.\nOn this blog I share the R packages I build, such as stratifyR and FitVerse, with worked examples and notes on the methods behind them."
+    "text": "I am Karuna Reddy, an academic at the University of Auckland, where I work as a Professional Teaching Fellow in Data Science at the School of Computer Science, and also serve as Deputy Director of Data Science. I coordinate courses and supervise Masters and PhD students on research and industry projects.\nMy research is in survey sampling methodology, with a focus on optimal stratification, mathematical programming and optimisation, along with broader interests in data science and machine learning. I did my BSc, MSc and PhD at the University of the South Pacific (USP) in Fiji, and before Auckland, I was a Lecturer in Data Science at USP and also prior to that I was a Research Fellow in Survey Statistics at the Australian National University (ANU) in Canberra.\nOn this blog I share the R packages I build, such as stratifyR and FitVerse, with worked examples and notes on the methods behind them."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html",
-    "href": "posts/stratifyR-2.0-1/index.html",
-    "title": "stratifyR 2.0-1",
+    "objectID": "posts/multistrata-1.0-1/index.html",
+    "href": "posts/multistrata-1.0-1/index.html",
+    "title": "multistrata",
     "section": "",
-    "text": "Optimal Survey Stratification in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"stratifyR\")  ·  library(stratifyR)\nWhen your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.\nstratifyR 2.0-1 works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report."
+    "text": "Multivariate Optimum Stratification and Sample Allocation\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"multistrata\")  ·  library(multistrata)\nstratifyR finds optimal boundaries for surveys stratified on a single variable. In practice, many surveys stratify on two or more variables at the same time and need to estimate several study variables well. multistrata extends stratifyR to that general case.\nIt jointly determines boundaries and sample allocation across multiple stratification variables and multiple study variables, minimising a weighted composite variance objective. The algorithm alternates between a boundary update and an exact generalised Neyman allocation, embedded in a multi-start scheme to avoid poor local solutions."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#quick-start",
-    "href": "posts/stratifyR-2.0-1/index.html#quick-start",
-    "title": "stratifyR 2.0-1",
+    "objectID": "posts/multistrata-1.0-1/index.html#quick-start",
+    "href": "posts/multistrata-1.0-1/index.html#quick-start",
+    "title": "multistrata",
     "section": "Quick Start",
-    "text": "Quick Start\nlibrary(stratifyR)\ndata(sugarcane)   # 13,894 cane growers in Fiji\n\n# 4 strata · total sample 500 · Dynamic Programming solver\nres &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nsummary(res)\nOne call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.\nres$OSB       # optimal stratum boundaries\nres$nh        # sample sizes per stratum\nres$Wh        # stratum weights\nres$Vh        # within-stratum variances\nres$WhSh      # each stratum's Neyman cost contribution\nres$WhShTot   # total Neyman cost (lower = better)\nres$distr     # fitted distribution name\nres$fit       # fitted distribution parameters"
+    "text": "Quick Start\nlibrary(multistrata)\n\n# simulate a two-variable population\nset.seed(42)\npop &lt;- sim_population(N = 5000, p = 2, q = 2, scenario = \"independent\")\n\n# joint stratification on X1 and X2, estimating Y1 and Y2\nres &lt;- stratify_multi(\n  data       = pop[, c(\"X1\", \"X2\")],\n  study_vars = pop[, c(\"Y1\", \"Y2\")],\n  H_vec      = c(3, 3),          # 3 strata per variable = 9 total strata\n  n_total    = 500,\n  omega      = c(0.5, 0.5),      # equal weight on both study variables\n  n_starts   = 50\n)\nprint(res)\nsummary(res)\nH_vec gives the number of strata for each stratification variable. With H_vec = c(3, 3) you get a 3x3 grid of 9 strata in the joint space."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#distribution-fitting-step",
-    "href": "posts/stratifyR-2.0-1/index.html#distribution-fitting-step",
-    "title": "stratifyR 2.0-1",
-    "section": "Distribution Fitting Step",
-    "text": "Distribution Fitting Step\nBefore placing any boundaries, strata.data() automatically fits your variable’s distribution from these candidates:\nNormal · Log-Normal · Gamma · Weibull · Exponential · Cauchy · Uniform · Pareto · Triangular · Right-Triangular\nThe fitted distribution is used by the Dynamic Programming solver to compute each stratum’s contribution exactly. This is what makes it reliable on skewed and heavy-tailed data.\n\n\n\n\n\n\nTip\n\n\n\nAlready know the distribution? Use strata.distr() to supply it directly. No data needed (see Design Without Data)."
+    "objectID": "posts/multistrata-1.0-1/index.html#core-function-stratify_multi",
+    "href": "posts/multistrata-1.0-1/index.html#core-function-stratify_multi",
+    "title": "multistrata",
+    "section": "Core Function: stratify_multi()",
+    "text": "Core Function: stratify_multi()\nThe main function takes your population frame, your study variables, and a strata grid. It returns optimal boundaries, stratum sample sizes, and diagnostics.\n\nKey arguments\nstratify_multi(\n  data,                    # stratification variables (N x p data frame or matrix)\n  study_vars,              # study (target) variables (N x q)\n  H_vec,                   # strata per variable, e.g. c(3, 3) or c(4, 2, 3)\n  n_total,                 # total sample size\n  omega      = NULL,       # study-variable weights (default: equal)\n  constraint = \"n_total\",  # \"n_total\" or \"cost\"\n  cost_total = NULL,       # budget C* (when constraint = \"cost\")\n  cost_fixed = 0,          # fixed overhead deducted from budget\n  cost_per_unit = 1,       # per-unit cost (scalar or H-vector)\n  cv_targets = NULL,       # max CV per study variable, e.g. c(0.03, 0.03)\n  distributions = NULL,    # NULL (empirical) or \"auto\" or named list of families\n  method     = \"cobyla\",   # boundary solver: \"cobyla\" or \"slsqp\"\n  n_starts   = 50,         # number of random starts\n  n_min      = 2,          # minimum sample per stratum\n  verbose    = FALSE,      # print per-start progress\n  trace      = FALSE       # store per-iteration objective sequence\n)\n\n\n\n\n\n\nTipReproducibility\n\n\n\nThe multi-start scheme draws its initial boundaries at random. Always set a seed before any design you intend to report.\nset.seed(1)\nres &lt;- stratify_multi(data, study_vars, H_vec = c(4, 3), n_total = 600)"
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#three-solvers",
-    "href": "posts/stratifyR-2.0-1/index.html#three-solvers",
-    "title": "stratifyR 2.0-1",
-    "section": "Three Solvers",
-    "text": "Three Solvers\n\n  \n    ⚙ Dynamic Programming\n    method = \"dp\"Globally optimal on a fine grid. Best for heavy-tailed or skewed data. Most reliable choice when boundary accuracy matters most.\n  \n  \n    ⚡ COBYLA\n    method = \"cobyla\"Fast derivative-free solver from many starting points. Matches DP on symmetric/light-tailed data in a fraction of the time. Best for interactive use.\n  \n  \n    🌐 GLOBAL\n    method = \"global\"Two-phase: broad global search + refinement. The safe fast choice for skewed data when DP is too slow.\n  \n\ndp   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\ncob  &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"cobyla\")\nglob &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"global\")\n\nSolution Quality Diagnostics\nFor COBYLA and GLOBAL, check how close the solution is to optimal:\nres$converged        # did the solver converge?\nres$optimality_gap   # Cauchy-Schwarz gap: distance above the lower bound\nres$kkt_residuals    # first-order optimality residuals"
+    "objectID": "posts/multistrata-1.0-1/index.html#two-weight-modes",
+    "href": "posts/multistrata-1.0-1/index.html#two-weight-modes",
+    "title": "multistrata",
+    "section": "Two Weight Modes",
+    "text": "Two Weight Modes\nThe stratum weights Wh (the fraction of the population in each stratum) can be estimated in two ways.\n\n  \n    Empirical mode (default)\n    Wh is the sample proportion of units falling in each stratum. Uses only the data, no distributional assumptions. Set distributions = NULL.\n  \n  \n    Parametric mode\n    Wh is computed from marginal CDF differences under a fitted distribution. Set distributions = \"auto\" for AIC-based family selection, or supply families directly.\n  \n\nAuto mode picks the best-fitting marginal family per stratification variable:\nres &lt;- stratify_multi(\n  data, study_vars, H_vec = c(3, 3), n_total = 500,\n  distributions = \"auto\"\n)\n# res$.meta$distributions shows the selected families\nYou can also supply families directly:\ndists &lt;- list(\n  X1 = list(family = \"lnorm\", meanlog = 1.2, sdlog = 0.8),\n  X2 = list(family = \"gamma\", shape = 2.5, rate = 0.4)\n)\nres &lt;- stratify_multi(data, study_vars, H_vec = c(3, 3), n_total = 500,\n                      distributions = dists)\nSupported families: norm, lnorm, gamma, exp, weibull, beta, unif, chisq, t, cauchy, logis, pareto, triang. When FitVerse is installed, auto mode can also search its 52 families."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#visualising-the-design",
-    "href": "posts/stratifyR-2.0-1/index.html#visualising-the-design",
-    "title": "stratifyR 2.0-1",
-    "section": "Visualising the Design",
-    "text": "Visualising the Design\n\n2D Density Plot3D Cost SurfaceBoundary Explorer\n\n\nHistogram with fitted density curve and colour-coded strata shading. Immediately shows where the boundaries fall and how the data mass is split.\nplot(res)\n\n\nInteractive plotly surface showing how the Neyman cost changes as boundaries move. Reveals that the optimum sits in a well.\nplot(res, type = \"3d\")\n\n\nOne slider per interior boundary. Drag it and the Neyman cost updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.\nplot(res, type = \"interactive\")"
+    "objectID": "posts/multistrata-1.0-1/index.html#two-solvers",
+    "href": "posts/multistrata-1.0-1/index.html#two-solvers",
+    "title": "multistrata",
+    "section": "Two Solvers",
+    "text": "Two Solvers\n\n  \n    COBYLA (default)\n    method = \"cobyla\"Derivative-free constrained optimisation. Works in both empirical and parametric modes. Robust and fast for most problems.\n  \n  \n    SLSQP\n    method = \"slsqp\"Gradient-based solver using the closed-form weight gradient (Section 4.2 of the paper). Parametric mode only. Faster convergence when a good distribution fit is available.\n  \n\n\nChecking the solution\nAfter fitting, check the quality diagnostics:\nres$objective        # optimal composite variance Phi*\nres$optimality_gap   # gap above the lower bound (0 = at the bound)\nres$kkt_residual     # first-order stationarity residual\nres$kkt_ok           # TRUE if residual is below tol_kkt\nres$converged        # did the solver converge within max_iter?\nres$n_starts_run     # number of random starts completed"
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#design-efficiency-report",
-    "href": "posts/stratifyR-2.0-1/index.html#design-efficiency-report",
-    "title": "stratifyR 2.0-1",
-    "section": "Design Efficiency Report",
-    "text": "Design Efficiency Report\ncd &lt;- compare_designs(res)\ncd\nCompares three designs at the same sample size: Simple Random Sampling, Proportional Allocation, and Optimal Neyman Allocation. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.\n\n\n\n\n\n\nNoteExample result (sugarcane production, n = 500)\n\n\n\nThe optimal stratified sample of 500 growers is as precise as a simple random sample of ~5,395 growers. That is roughly a 90% saving in sample size."
+    "objectID": "posts/multistrata-1.0-1/index.html#reading-the-results",
+    "href": "posts/multistrata-1.0-1/index.html#reading-the-results",
+    "title": "multistrata",
+    "section": "Reading the Results",
+    "text": "Reading the Results\nres$boundaries       # list of p boundary vectors (one per stratification variable)\nres$allocation       # stratum sample sizes (integer vector of length H_total)\nres$stratum_stats    # per-stratum N_h, W_h, n_h, A_h, within-stratum variances\nThe print method shows a formatted summary:\nprint(res)\n================================================\n  Multivariate Optimum Stratification (multistrata)\n================================================\n  Stratification variables : 2  (X1, X2)\n  Study variables          : 2  (Y1, Y2)\n  Strata per variable      : 3 x 3\n  Total strata             : 9\n  ...\n  Composite variance (Phi) : 0.0048\n  Optimality gap           : 0.12%\n  Converged                : YES\n  Multi-starts used        : 50"
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#choosing-the-number-of-strata",
-    "href": "posts/stratifyR-2.0-1/index.html#choosing-the-number-of-strata",
-    "title": "stratifyR 2.0-1",
-    "section": "Choosing the Number of Strata",
-    "text": "Choosing the Number of Strata\nMore strata always lower the Neyman cost, but gains level off quickly. Scan a range and look for the elbow:\nfor (H in 2:6) {\n  r &lt;- strata.data(sugarcane$Production, h = H, n = 500, method = \"dp\")\n  cat(\"H =\", H, \"  Neyman cost =\", round(r$WhShTot, 2), \"\\n\")\n}\nThe Shiny app does this automatically and marks the recommended stratum count on the curve."
+    "objectID": "posts/multistrata-1.0-1/index.html#precision-driven-design-find_n",
+    "href": "posts/multistrata-1.0-1/index.html#precision-driven-design-find_n",
+    "title": "multistrata",
+    "section": "Precision-Driven Design: find_n()",
+    "text": "Precision-Driven Design: find_n()\nThe usual question is “given n, what is the best design?”. Sometimes the question runs the other way: “what is the smallest n that keeps all CVs below a target?”. find_n() answers that.\nfn &lt;- find_n(\n  data       = pop[, c(\"X1\", \"X2\")],\n  study_vars = pop[, c(\"Y1\", \"Y2\")],\n  cv_targets = c(0.03, 0.03),     # max 3% CV on Y1 and Y2\n  H_vec      = c(3, 3),\n  n_starts   = 20\n)\nprint(fn)\n# fn$n          -- smallest feasible total sample size\n# fn$allocation -- stratum sizes at that n\n# fn$cv_achieved -- actual CVs achieved\nIt works by integer bisection over the CV-constrained allocation sub-problem. Boundaries are fixed from a single optimisation run and reused, which keeps the computation fast."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#design-without-data",
-    "href": "posts/stratifyR-2.0-1/index.html#design-without-data",
-    "title": "stratifyR 2.0-1",
-    "section": "Design Without Data",
-    "text": "Design Without Data\nYou can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:\n# Household income survey: log-normal, 20,000 units, n = 1,000\ng &lt;- strata.distr(h = 4, initval = 500, dist = 119500,\n                  distr = \"lnorm\",\n                  params = c(meanlog = 9.616, sdlog = 0.703),\n                  n = 1000, N = 20000, method = \"dp\")\nsummary(g)\ncompare_designs(g)\n# Optimal design ~12x more efficient than SRS"
+    "objectID": "posts/multistrata-1.0-1/index.html#choosing-the-strata-grid-choose_h",
+    "href": "posts/multistrata-1.0-1/index.html#choosing-the-strata-grid-choose_h",
+    "title": "multistrata",
+    "section": "Choosing the Strata Grid: choose_H()",
+    "text": "Choosing the Strata Grid: choose_H()\nMore strata always reduce variance, but the gains level off. choose_H() traces the optimal composite variance across a family of candidate grids and flags the elbow.\nch &lt;- choose_H(\n  data       = pop[, c(\"X1\", \"X2\")],\n  study_vars = pop[, c(\"Y1\", \"Y2\")],\n  n_total    = 500,\n  H_each     = 2:5,       # tries 2x2, 3x3, 4x4, 5x5\n  n_starts   = 10,\n  plot       = TRUE\n)\nch$table            # Phi*, optimality gap, relative gain per grid\nch$recommended      # recommended H_vec (elbow)\nThe plot shows the Phi* curve with the recommended grid marked. Go beyond the recommended grid only if the additional precision is worth the operational cost of more strata."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#cost-constrained-allocation",
-    "href": "posts/stratifyR-2.0-1/index.html#cost-constrained-allocation",
-    "title": "stratifyR 2.0-1",
-    "section": "Cost-Constrained Allocation",
-    "text": "Cost-Constrained Allocation\nWhen sampling costs differ by stratum (large units cost more to visit):\nch &lt;- c(20, 30, 50, 80)   # cost per sampled unit, stratum 1 to 4\n\ncost_res &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                        method = \"dp\", cost = TRUE, ch = ch)\nThe cost-aware design adjusts both boundaries and allocation. On the sugarcane data it is about a third cheaper to run in the field at the same total n."
+    "objectID": "posts/multistrata-1.0-1/index.html#priority-trade-off-omega_sweep",
+    "href": "posts/multistrata-1.0-1/index.html#priority-trade-off-omega_sweep",
+    "title": "multistrata",
+    "section": "Priority Trade-Off: omega_sweep()",
+    "text": "Priority Trade-Off: omega_sweep()\nWhen you have two study variables and do not know how to weight them, omega_sweep() shows how the optimal design changes as the priority shifts from one to the other.\nsw &lt;- omega_sweep(\n  data       = pop[, c(\"X1\", \"X2\")],\n  study_vars = pop[, c(\"Y1\", \"Y2\")],\n  H_vec      = c(3, 3),\n  n_total    = 500,\n  n_grid     = 11,           # 0%, 10%, ..., 100% weight on Y1\n  n_starts   = 10\n)\nplot(sw)\nThe plot traces Phi* and per-variable variance against the weight on Y1. The flat middle region, if there is one, shows where the design is robust to the exact choice of weights."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#shiny-app",
-    "href": "posts/stratifyR-2.0-1/index.html#shiny-app",
-    "title": "stratifyR 2.0-1",
+    "objectID": "posts/multistrata-1.0-1/index.html#cost-constrained-design",
+    "href": "posts/multistrata-1.0-1/index.html#cost-constrained-design",
+    "title": "multistrata",
+    "section": "Cost-Constrained Design",
+    "text": "Cost-Constrained Design\nWhen sampling units in different strata cost different amounts, supply a per-stratum cost vector and a total budget instead of a fixed n.\nres_cost &lt;- stratify_multi(\n  data          = pop[, c(\"X1\", \"X2\")],\n  study_vars    = pop[, c(\"Y1\", \"Y2\")],\n  H_vec         = c(3, 3),\n  constraint    = \"cost\",\n  cost_total    = 50000,\n  cost_fixed    = 2000,         # fixed overhead (travel, setup)\n  cost_per_unit = c(rep(20, 5), rep(40, 4)),   # H_total = 9 strata\n  n_starts      = 30\n)\nThe cost-aware design adjusts both boundaries and allocation. Strata with high per-unit costs get fewer units and the boundaries may shift to rebalance."
+  },
+  {
+    "objectID": "posts/multistrata-1.0-1/index.html#cv-constrained-allocation",
+    "href": "posts/multistrata-1.0-1/index.html#cv-constrained-allocation",
+    "title": "multistrata",
+    "section": "CV-Constrained Allocation",
+    "text": "CV-Constrained Allocation\nSpecify maximum acceptable coefficients of variation for each study variable instead of (or alongside) a total sample size.\nres_cv &lt;- stratify_multi(\n  data       = pop[, c(\"X1\", \"X2\")],\n  study_vars = pop[, c(\"Y1\", \"Y2\")],\n  H_vec      = c(3, 3),\n  n_total    = 800,\n  cv_targets = c(0.05, 0.04),   # 5% CV on Y1, 4% on Y2\n  n_starts   = 30\n)\nres_cv$cv_achieved    # CVs actually achieved by the optimal allocation"
+  },
+  {
+    "objectID": "posts/multistrata-1.0-1/index.html#design-without-data-stratify_multi_density",
+    "href": "posts/multistrata-1.0-1/index.html#design-without-data-stratify_multi_density",
+    "title": "multistrata",
+    "section": "Design Without Data: stratify_multi_density()",
+    "text": "Design Without Data: stratify_multi_density()\nYou can plan a stratified sample before collecting data, using assumed marginal distributions from a past survey or pilot study.\ndists &lt;- list(\n  X1 = list(family = \"lnorm\", meanlog = 1.8, sdlog = 0.7),\n  X2 = list(family = \"gamma\", shape = 3.0,   rate  = 0.5)\n)\nres_dens &lt;- stratify_multi_density(\n  distributions = dists,\n  H_vec         = c(3, 3),\n  n_total       = 400,\n  omega         = c(0.5, 0.5)\n)\nStratum weights are computed from the marginal CDFs. Study-variable moments come from Gauss-Kronrod quadrature of the marginal densities. This matches the empirical mode in the large-sample limit."
+  },
+  {
+    "objectID": "posts/multistrata-1.0-1/index.html#survey-integration",
+    "href": "posts/multistrata-1.0-1/index.html#survey-integration",
+    "title": "multistrata",
+    "section": "Survey Integration",
+    "text": "Survey Integration\nTwo functions take the optimal design into production.\n\nassign_strata()\nApplies the boundaries from a fitted design to any set of units: an estimation frame, a fresh census extract, or hold-out data.\n# fit on a pilot sample, score the full frame\nstrata_labels &lt;- assign_strata(res, newdata = full_frame[, c(\"X1\", \"X2\")])\ntable(strata_labels)\nThe function matches columns by name when available, so you do not need to worry about column order.\n\n\nas_svydesign()\nExports a survey::svydesign object ready for estimation with the survey package or srvyr.\nsvy &lt;- as_svydesign(res, frame = pop)\n# standard survey estimation from here\nlibrary(survey)\nsvymean(~Y1 + Y2, design = svy)\n\n# or just a labelled frame for srvyr\nlabelled_frame &lt;- as_svydesign(res, frame = pop, frame_only = TRUE)\n# columns .stratum, .N_h, .n_h, .weight are added automatically"
+  },
+  {
+    "objectID": "posts/multistrata-1.0-1/index.html#visualisation",
+    "href": "posts/multistrata-1.0-1/index.html#visualisation",
+    "title": "multistrata",
+    "section": "Visualisation",
+    "text": "Visualisation\n\nBoundary DiagramAllocation Bar ChartWeights Bar ChartOmega Sweep\n\n\nplot_strata(res)\nFor one stratification variable: density with boundary walls. For two variables: a 3-D perspective plot of the joint density with boundary planes. The same function works for any number of variables.\n\n\nplot(res, which = \"allocation\")\nBar chart of stratum sample sizes. Shows how the allocation spreads across strata.\n\n\nplot(res, which = \"weights\")\nStratum weights Wh as a bar chart. Useful for checking how uniformly the population is distributed across strata.\n\n\nsw &lt;- omega_sweep(data, study_vars, H_vec = c(3, 3), n_total = 500)\nplot(sw)\nTraces the precision trade-off as the weight shifts between two study variables."
+  },
+  {
+    "objectID": "posts/multistrata-1.0-1/index.html#benchmarking",
+    "href": "posts/multistrata-1.0-1/index.html#benchmarking",
+    "title": "multistrata",
+    "section": "Benchmarking",
+    "text": "Benchmarking\nbenchmark_designs() compares the multistrata design against simpler alternatives: proportional allocation, equal allocation, and two classical boundary rules (Dalenius-Hodges and Gunning-Horgan).\nbm &lt;- benchmark_designs(res, pop)\nprint(bm)\nResults show composite variance and per-variable CVs for each design at the same total sample size."
+  },
+  {
+    "objectID": "posts/multistrata-1.0-1/index.html#simulated-populations",
+    "href": "posts/multistrata-1.0-1/index.html#simulated-populations",
+    "title": "multistrata",
+    "section": "Simulated Populations",
+    "text": "Simulated Populations\nsim_population() generates test populations with known structures.\npop &lt;- sim_population(N = 5000, p = 2, q = 2, scenario = \"independent\")\nAvailable scenarios:\n\n\n\n\n\n\n\nScenario\nDescription\n\n\n\n\n\"independent\"\nStratification and study variables uncorrelated\n\n\n\"correlated\"\nModerate positive correlation between X and Y variables\n\n\n\"weibull_pareto\"\nHeavy-tailed establishment-survey archetype\n\n\n\"copula\"\nDependent stratification variables via a Gaussian copula with log-normal margins"
+  },
+  {
+    "objectID": "posts/multistrata-1.0-1/index.html#shiny-app",
+    "href": "posts/multistrata-1.0-1/index.html#shiny-app",
+    "title": "multistrata",
     "section": "Shiny App",
-    "text": "Shiny App\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\"))   # once\nstratifyRApp()\nThe app covers the full workflow across eight tabs:\n\nOptimal Boundaries: per-stratum summary table + 2D density plot\nDesign Comparison: variance, SE, design effect vs. SRS and proportional\nStrata Count: Neyman cost curve with elbow recommendation\nBoundary Methods: DP vs. classical boundary rules side by side\nSample Size: target precision to required sample size\nAllocation: SRS / proportional / Neyman compared\nCost-Constrained: enter per-stratum costs and see the cost-aware design\nVisualise: 2D density, 3D cost surface, interactive boundary explorer"
+    "text": "Shiny App\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\", \"plotly\"))   # once\nrun_app()\nThe app exposes the full workflow without writing code:\n\nData input: upload your own CSV, generate a simulated population, or use one of the three built-in datasets\nDesign: set H_vec, n_total or budget, solver, weight mode, and omega\nfind_n: enter CV targets, get the minimum n\nchoose_H: scan candidate grids and view the elbow\nOmega explorer: slide the priority weight and watch the design change\nBenchmark: compare against proportional, equal, and classical rules\nVisualise: boundary diagram, allocation bar chart, cost surface\nExport: download report (PDF/HTML) and a reproducible R script with the set.seed() call\n\nThe generated R script includes the exact set.seed() call for the run shown on screen, so the design can be reproduced from the console."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#what-is-new-in-version-2.0-1",
-    "href": "posts/stratifyR-2.0-1/index.html#what-is-new-in-version-2.0-1",
-    "title": "stratifyR 2.0-1",
-    "section": "What Is New in Version 2.0-1",
-    "text": "What Is New in Version 2.0-1\nNEWTwo additional solvers, COBYLA and GLOBAL, alongside DP. All available through the same method argument.\nNEWCost-constrained allocation via cost = TRUE and ch arguments.\nNEWcompare_designs(): design-efficiency report with design effects and equivalent SRS sizes.\nNEWSolution-quality diagnostics: optimality gap and KKT residuals for fast solvers.\nNEWRicher visualisation: 2D density, interactive 3D cost surface, real-time boundary explorer.\nNEWFull Shiny app via stratifyRApp() covering the entire workflow.\n✔ COMPATFully backward-compatible with version 1.x. Existing strata.data() and strata.distr() calls work unchanged."
+    "objectID": "posts/multistrata-1.0-1/index.html#who-is-multistrata-for",
+    "href": "posts/multistrata-1.0-1/index.html#who-is-multistrata-for",
+    "title": "multistrata",
+    "section": "Who Is multistrata For?",
+    "text": "Who Is multistrata For?\n\n  🏛 National Statistical OfficesBusiness and agricultural surveys that stratify on size and sector simultaneously, with precision targets on multiple indicators.\n  📐 Survey MethodologistsA reproducible, open implementation with formal convergence guarantees, optimality gaps, and KKT diagnostics for peer review.\n  🔬 Applied ResearchersHealth, agricultural, economic, and environmental studies where more than one stratification variable is available at the design stage.\n  📊 Planning-Stage DesignUse the density mode and find_n() to plan a complete survey before collecting data, from distributional assumptions alone.\n  🎓 Teachers and StudentsThe Shiny app and sim_population() make the concepts of joint stratification and the Neyman trade-off easy to explore."
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#who-is-stratifyr-for",
-    "href": "posts/stratifyR-2.0-1/index.html#who-is-stratifyr-for",
-    "title": "stratifyR 2.0-1",
-    "section": "Who Is stratifyR For?",
-    "text": "Who Is stratifyR For?\n\n  🏛 Statistical OfficesBusiness, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.\n  📐 Survey MethodologistsAn open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.\n  🔬 Applied ResearchersHealth, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.\n  🎓 Teachers & StudentsThe app and interactive plots show how boundaries and allocation affect an estimate, with no code needed."
-  },
-  {
-    "objectID": "posts/stratifyR-2.0-1/index.html#quick-reference",
-    "href": "posts/stratifyR-2.0-1/index.html#quick-reference",
-    "title": "stratifyR 2.0-1",
+    "objectID": "posts/multistrata-1.0-1/index.html#quick-reference",
+    "href": "posts/multistrata-1.0-1/index.html#quick-reference",
+    "title": "multistrata",
     "section": "Quick Reference",
-    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nstrata.data(x, h, n)\nFit + optimal boundaries + allocation from data\n\n\nstrata.distr(h, n, distr, params, N)\nOptimal design from assumed distribution\n\n\ncompare_designs(res)\nDesign efficiency vs. SRS and proportional\n\n\nplot(res)\n2D strata density plot\n\n\nplot(res, type = \"3d\")\nInteractive 3D Neyman cost surface\n\n\nplot(res, type = \"interactive\")\nReal-time boundary explorer\n\n\nstratifyRApp()\nLaunch Shiny app\n\n\nsummary(res)\nFull per-stratum table\n\n\nprint(res)\nConsole summary"
+    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nstratify_multi(data, study_vars, H_vec, n_total)\nJoint boundary + allocation optimisation\n\n\nstratify_multi_density(distributions, H_vec, n_total)\nDesign from marginal densities, no data needed\n\n\nfind_n(data, study_vars, cv_targets, H_vec)\nSmallest n meeting all CV targets\n\n\nchoose_H(data, study_vars, n_total)\nScan strata grids and find the elbow\n\n\nomega_sweep(data, study_vars, H_vec, n_total)\nPriority trade-off between two study variables\n\n\nassign_strata(result, newdata)\nScore any frame into the optimal strata\n\n\nas_svydesign(result, frame)\nExport a survey::svydesign object\n\n\nbenchmark_designs(result, pop)\nCompare vs proportional, equal, and classical rules\n\n\nsim_population(N, p, q, scenario)\nGenerate a test population\n\n\nplot_strata(result)\nBoundary diagram (1-D to n-D)\n\n\nplot(result, which = \"allocation\")\nAllocation bar chart\n\n\nrun_app()\nLaunch interactive Shiny app\n\n\nprint(result)\nFormatted design summary\n\n\nsummary(result)\nPer-stratum table"
   },
   {
-    "objectID": "posts/stratifyR-2.0-1/index.html#citation",
-    "href": "posts/stratifyR-2.0-1/index.html#citation",
-    "title": "stratifyR 2.0-1",
+    "objectID": "posts/multistrata-1.0-1/index.html#citation",
+    "href": "posts/multistrata-1.0-1/index.html#citation",
+    "title": "multistrata",
     "section": "Citation",
-    "text": "Citation\ncitation(\"stratifyR\")\n\nReddy, K. G., & Khan, M. G. M. (2026). stratifyR: Optimal Stratification of Surveys. R package version 2.0-1. https://cran.r-project.org/package=stratifyR\n\n\n\n\n\n\n\n\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR\nA full software paper benchmarking the three solvers is in preparation. We would love to hear how you are using it. Get in touch or leave a comment."
+    "text": "Citation\ncitation(\"multistrata\")\n\nReddy, K. G., & Khan, M. G. M. (2026). multistrata: Multivariate Optimum Stratification and Sample Allocation for Surveys. R package version 1.0-1. https://cran.r-project.org/package=multistrata\n\n\n\n\n\n\n\n\nmultistrata is on CRAN: https://cran.r-project.org/package=multistrata We would love to hear how you are using it. Leave a comment or get in touch directly."
   },
   {
     "objectID": "posts/fitverse-1.0-2/index.html",
@@ -203,10 +245,220 @@
     "text": "Citation\ncitation(\"FitVerse\")\n\nReddy, K. G., & Khan, M. G. M. (2026). FitVerse: Parametric Distribution Fitting for R. R package version 1.0-2. https://cran.r-project.org/package=FitVerse\n\n\n\n\n\n\n\n\nFitVerse is on CRAN: https://cran.r-project.org/package=FitVerse\nWe would love to hear how you are using it. Leave a comment or get in touch directly."
   },
   {
+    "objectID": "posts/stratifyR-2.0-3/index.html",
+    "href": "posts/stratifyR-2.0-3/index.html",
+    "title": "stratifyR 2.0-3",
+    "section": "",
+    "text": "Optimal Survey Stratification in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"stratifyR\")  ·  library(stratifyR)\nWhen your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.\nstratifyR 2.0-3 works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#quick-start",
+    "href": "posts/stratifyR-2.0-3/index.html#quick-start",
+    "title": "stratifyR 2.0-3",
+    "section": "Quick Start",
+    "text": "Quick Start\nlibrary(stratifyR)\ndata(sugarcane)   # 13,894 cane growers in Fiji\n\n# 4 strata · total sample 500 · Dynamic Programming solver\nres &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nsummary(res)\nOne call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.\nres$OSB       # optimal stratum boundaries\nres$nh        # sample sizes per stratum\nres$Wh        # stratum weights\nres$Vh        # within-stratum variances\nres$WhSh      # each stratum's Neyman cost contribution\nres$WhShTot   # total Neyman cost (lower = better)\nres$distr     # fitted distribution name\nres$fit       # fitted distribution parameters"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#distribution-fitting-step",
+    "href": "posts/stratifyR-2.0-3/index.html#distribution-fitting-step",
+    "title": "stratifyR 2.0-3",
+    "section": "Distribution Fitting Step",
+    "text": "Distribution Fitting Step\nBefore placing any boundaries, strata.data() automatically fits your variable’s distribution from these candidates:\nNormal · Log-Normal · Gamma · Weibull · Exponential · Cauchy · Uniform · Pareto · Triangular · Right-Triangular\nThe fitted distribution is used by the Dynamic Programming solver to compute each stratum’s contribution exactly. In 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.\n\n\n\n\n\n\nTip\n\n\n\nAlready know the distribution? Use strata.distr() to supply it directly. No data needed (see Design Without Data)."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#four-solvers",
+    "href": "posts/stratifyR-2.0-3/index.html#four-solvers",
+    "title": "stratifyR 2.0-3",
+    "section": "Four Solvers",
+    "text": "Four Solvers\n\n  \n    Dynamic Programming\n    method = \"dp\"The default. Globally optimal on a fine grid for the fitted distribution, followed by a short local refinement that can only improve the answer.\n  \n  \n    EXACT\n    method = \"exact\"Dynamic programming on the data themselves. Returns the best possible partition of your sample. Exact for up to 20,000 distinct cut points.\n  \n  \n    COBYLA\n    method = \"cobyla\"Fast multi-start solver. One start comes from a quick coarse exact search, so it copes well with very skewed data. Best for interactive use.\n  \n  \n    GLOBAL\n    method = \"global\"Two phases: a broad DIRECT-L search on the rank scale, then a local refinement. A safe, fast choice for skewed data.\n  \n\ndp   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nex   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"exact\")\ncob  &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"cobyla\")\nglob &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"global\")\n\nSolution Quality Diagnostics\nFor COBYLA and GLOBAL, check how close the solution is to optimal:\nres$converged        # did the solver converge?\nres$optimality_gap   # Cauchy-Schwarz gap: distance above the lower bound\nres$kkt_residuals    # first-order optimality residuals"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#visualising-the-design",
+    "href": "posts/stratifyR-2.0-3/index.html#visualising-the-design",
+    "title": "stratifyR 2.0-3",
+    "section": "Visualising the Design",
+    "text": "Visualising the Design\n\n2D Density Plot3D Cost SurfaceBoundary Explorer\n\n\nHistogram with fitted density curve and colour-coded strata shading. Immediately shows where the boundaries fall and how the data mass is split.\nplot(res)\n\n\nInteractive plotly surface showing how the Neyman cost changes as boundaries move. Reveals that the optimum sits in a well.\nplot(res, type = \"3d\")\n\n\nOne slider per interior boundary. Drag it and the Neyman cost updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.\nplot(res, type = \"interactive\")"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#design-efficiency-report",
+    "href": "posts/stratifyR-2.0-3/index.html#design-efficiency-report",
+    "title": "stratifyR 2.0-3",
+    "section": "Design Efficiency Report",
+    "text": "Design Efficiency Report\ncd &lt;- compare_designs(res)\ncd\nCompares three designs at the same sample size: Simple Random Sampling, Proportional Allocation, and Optimal Neyman Allocation. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.\n\n\n\n\n\n\nNoteReading the report\n\n\n\nThe equivalent SRS size tells you how many units a simple random sample would need to match the precision of your stratified design. On skewed data such as the sugarcane production, it is many times larger than the stratified sample."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#choosing-the-number-of-strata",
+    "href": "posts/stratifyR-2.0-3/index.html#choosing-the-number-of-strata",
+    "title": "stratifyR 2.0-3",
+    "section": "Choosing the Number of Strata",
+    "text": "Choosing the Number of Strata\nMore strata always lower the Neyman cost, but gains level off quickly. Scan a range and look for the elbow:\nfor (H in 2:6) {\n  r &lt;- strata.data(sugarcane$Production, h = H, n = 500, method = \"dp\")\n  cat(\"H =\", H, \"  Neyman cost =\", round(r$WhShTot, 2), \"\\n\")\n}\nThe Shiny app does this automatically and marks the recommended stratum count on the curve."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#design-without-data",
+    "href": "posts/stratifyR-2.0-3/index.html#design-without-data",
+    "title": "stratifyR 2.0-3",
+    "section": "Design Without Data",
+    "text": "Design Without Data\nYou can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:\n# Household income survey: log-normal, 20,000 units, n = 1,000\ng &lt;- strata.distr(h = 4, initval = 500, dist = 119500,\n                  distr = \"lnorm\",\n                  params = c(meanlog = 9.616, sdlog = 0.703),\n                  n = 1000, N = 20000, method = \"dp\")\nsummary(g)\ncompare_designs(g)"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#cost-constrained-allocation",
+    "href": "posts/stratifyR-2.0-3/index.html#cost-constrained-allocation",
+    "title": "stratifyR 2.0-3",
+    "section": "Cost-Constrained Allocation",
+    "text": "Cost-Constrained Allocation\nWhen sampling costs differ by stratum (large units cost more to visit):\nch &lt;- c(20, 30, 50, 80)   # cost per sampled unit, stratum 1 to 4\n\ncost_res &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                        method = \"dp\", cost = TRUE, ch = ch)\nThe cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design’s, so it is the better choice when the budget, rather than the sample size, is fixed."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#shiny-app",
+    "href": "posts/stratifyR-2.0-3/index.html#shiny-app",
+    "title": "stratifyR 2.0-3",
+    "section": "Shiny App",
+    "text": "Shiny App\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\"))   # once\nstratifyRApp()\nThe app covers the full workflow across eight tabs:\n\nOptimal Boundaries: per-stratum summary table + 2D density plot\nDesign Comparison: variance, SE, design effect vs. SRS and proportional\nStrata Count: Neyman cost curve with elbow recommendation\nBoundary Methods: DP vs. classical boundary rules side by side\nSample Size: target precision to required sample size\nAllocation: SRS / proportional / Neyman compared\nCost-Constrained: enter per-stratum costs and see the cost-aware design\nVisualise: 2D density, 3D cost surface, interactive boundary explorer"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#what-is-new-in-version-2.0-3",
+    "href": "posts/stratifyR-2.0-3/index.html#what-is-new-in-version-2.0-3",
+    "title": "stratifyR 2.0-3",
+    "section": "What Is New in Version 2.0-3",
+    "text": "What Is New in Version 2.0-3\nVersions 2.0-2 and 2.0-3 are accuracy releases. They came out of a large simulation study (ten distributions, 20 random seeds, two to six strata), checked against the exact optimum.\nNEWExact solver: method = \"exact\" runs dynamic programming on the data and returns the best possible partition. It is also the reference the other solvers are checked against.\nBETTERCOBYLA and GLOBAL now reach the exact optimum, or come within about 0.1% of it, on every population in the study, including very heavy-tailed ones such as Pareto and Cauchy samples.\nBETTERDP adds a short local refinement after the grid search, and two traceback fixes make it more robust on heavy-tailed data.\nFIXDistribution fitting: Pareto and triangular fits now work inside the package, with a numerically stable Pareto likelihood and robust Cauchy starting values.\nFIXBoundaries and costs: boundaries are kept at full precision, every unit is always counted, and tied values are never split across strata.\nFIXstrata.distr() now gives stratum sizes that add up to N exactly, and gives a clear message when the range lies outside a uniform or triangular distribution.\nCOMPATFully backward-compatible. Existing strata.data() and strata.distr() calls work unchanged.\nAlready in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, compare_designs(), solution-quality diagnostics, the 2D, 3D and interactive plots, and the Shiny app."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#who-is-stratifyr-for",
+    "href": "posts/stratifyR-2.0-3/index.html#who-is-stratifyr-for",
+    "title": "stratifyR 2.0-3",
+    "section": "Who Is stratifyR For?",
+    "text": "Who Is stratifyR For?\n\n  Statistical OfficesBusiness, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.\n  Survey MethodologistsAn open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.\n  Applied ResearchersHealth, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.\n  Teachers & StudentsThe app and interactive plots show how boundaries and allocation affect an estimate, with no code needed."
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#quick-reference",
+    "href": "posts/stratifyR-2.0-3/index.html#quick-reference",
+    "title": "stratifyR 2.0-3",
+    "section": "Quick Reference",
+    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nstrata.data(x, h, n)\nFit + optimal boundaries + allocation from data\n\n\nstrata.data(x, h, n, method = \"exact\")\nExact optimum on the data\n\n\nstrata.distr(h, n, distr, params, N)\nOptimal design from assumed distribution\n\n\ncompare_designs(res)\nDesign efficiency vs. SRS and proportional\n\n\nplot(res)\n2D strata density plot\n\n\nplot(res, type = \"3d\")\nInteractive 3D Neyman cost surface\n\n\nplot(res, type = \"interactive\")\nReal-time boundary explorer\n\n\nstratifyRApp()\nLaunch Shiny app\n\n\nsummary(res)\nFull per-stratum table\n\n\nprint(res)\nConsole summary"
+  },
+  {
+    "objectID": "posts/stratifyR-2.0-3/index.html#citation",
+    "href": "posts/stratifyR-2.0-3/index.html#citation",
+    "title": "stratifyR 2.0-3",
+    "section": "Citation",
+    "text": "Citation\ncitation(\"stratifyR\")\n\nReddy, K. G., & Khan, M. G. M. (2026). stratifyR: Optimal Stratification of Univariate Populations. R package version 2.0-3. https://cran.r-project.org/package=stratifyR\n\n\n\n\n\n\n\n\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR\nA full software paper benchmarking the four solvers is in preparation. We would love to hear how you are using it. Get in touch or leave a comment."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html",
+    "href": "posts/clusta-1.0-1/index.html",
+    "title": "clusta",
+    "section": "",
+    "text": "Spectral, Distribution-Aware and Dynamic-Programming Clustering\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"clusta\")  ·  library(clusta)\nMost clustering methods fail on non-convex shapes. Two interleaved crescents, concentric rings, or three spirals will confuse k-means because it partitions space with straight cuts. clusta is built around S-MPDP (Spectral Mathematical Programming Dynamic Programming), a method that first unfolds the data into a one-dimensional signal using a spectral graph, then finds cluster boundaries on that signal with an exact dynamic program.\nBeyond S-MPDP, clusta also provides globally optimal one-dimensional clustering, exact solutions for two-variable problems, projection-based methods for higher dimensions, and sequence or graph-constrained clustering. One consistent interface covers all of them."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#quick-start",
+    "href": "posts/clusta-1.0-1/index.html#quick-start",
+    "title": "clusta",
+    "section": "Quick Start",
+    "text": "Quick Start\nlibrary(clusta)\n\n# one variable: globally optimal partition\nx  &lt;- c(rnorm(60, 0), rnorm(60, 6), rnorm(60, 13))\ncl &lt;- clusta(x, k = 3)\nprint(cl)\nplot(cl)\n\n# two moons: non-convex, use S-MPDP\nd  &lt;- gen_two_moons()\ncl &lt;- clusta(d[, c(\"x\", \"y\")], k = 2, method = \"spectral\")\nplot(cl)\n\n# iris: multivariate, project to PC1 then exact DP\ncl &lt;- clusta(iris[, 1:4], k = 3, method = \"projection\")"
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#nine-clustering-methods",
+    "href": "posts/clusta-1.0-1/index.html#nine-clustering-methods",
+    "title": "clusta",
+    "section": "Nine Clustering Methods",
+    "text": "Nine Clustering Methods\nclusta picks a sensible default based on the data (one variable gives \"wcss\", multiple variables give \"projection\"), or you can set method explicitly.\n\n  \n    1D EXACT\n    wcss\n    Globally optimal contiguous partition of one variable by minimising within-cluster sum of squares. Returns a certified gap of 0%.\n  \n  \n    MULTIVARIATE\n    projection\n    Projects to the first principal component (or a custom direction) then runs the exact 1-D DP on the score. Exact on the projection axis.\n  \n  \n    MULTIVARIATE\n    estvar\n    Exact DP using an estimation-variance criterion. The Neyman objective (sum of Wh*Sh) is globally optimal. Also supports Gaussian and WCSS objectives.\n  \n  \n    DISTRIBUTION\n    parametric\n    Fits the best parametric distribution by AIC, then places boundaries with a DP on the model's Wh*Sh cost. Optionally uses FitVerse for 52 families.\n  \n  \n    FLAGSHIP\n    spectral\n    S-MPDP. Builds a k-NN graph, unfolds the data to a 1-D signal via the normalised Laplacian, then runs the distribution-fitting DP. Handles non-convex shapes.\n  \n  \n    2D EXACT\n    exact2d\n    Exactly two variables, k = 2. Enumerates all separating directions and returns the certified global optimum in full 2-D space.\n  \n  \n    2D\n    sweep\n    Two variables, any k. Global for k = 2; best clustering separable by parallel lines for k &gt;= 3. Report the optimality gap to assess quality.\n  \n  \n    SEQUENTIAL\n    sequence\n    Ordered data (time series, spatial transects, trajectories). Exact multivariate segment DP along the given order.\n  \n  \n    SPATIAL\n    graph\n    Contiguity-constrained clustering on a neighbourhood graph using minimum spanning tree and greedy edge removal. Respects spatial adjacency."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#s-mpdp-the-flagship-method",
+    "href": "posts/clusta-1.0-1/index.html#s-mpdp-the-flagship-method",
+    "title": "clusta",
+    "section": "S-MPDP: The Flagship Method",
+    "text": "S-MPDP: The Flagship Method\nStandard spectral clustering runs k-means on the eigenvectors of a graph Laplacian. S-MPDP replaces that k-means step with a dynamic program, which means it finds boundaries on the spectral signal exactly rather than approximately.\nThe algorithm has two stages. Stage 1 builds a mutual k-nearest-neighbour graph and computes the normalised Laplacian. The leading eigenvectors unfold the local neighbourhood structure into a one-dimensional score. Stage 2 fits the best parametric distribution to that score by AIC and places boundaries with an exact DP. The distribution fitting step lets the DP account for the shape of the signal rather than treating it as uniform.\n# dedicated interface with full control\ncl &lt;- spectral_mpdp(d[, c(\"x\", \"y\")], k = 2, k_neighbors = 15)\n\n# or through clusta()\ncl &lt;- clusta(d[, c(\"x\", \"y\")], k = 2, method = \"spectral\", k_neighbors = 15)\n\n\n\n\n\n\nNoteFitVerse integration\n\n\n\nSet fit_engine = \"fitverse\" in method = \"parametric\" to search all 52 distribution families rather than the default five. Set fit_engine = \"best\" to run both engines and keep whichever gives lower empirical Wh*Sh.\ncl &lt;- clusta(x, k = 3, method = \"parametric\", fit_engine = \"fitverse\")"
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#choosing-k",
+    "href": "posts/clusta-1.0-1/index.html#choosing-k",
+    "title": "clusta",
+    "section": "Choosing k",
+    "text": "Choosing k\n\nEigengap method\nThe Stage 1 graph is already built during clustering, so reading its Laplacian spectrum is cheap. A clear gap between consecutive eigenvalues points at the number of clusters in the data.\nsk &lt;- suggest_k(d[, c(\"x\", \"y\")], k_neighbors = 15, k_max = 8)\nsk          # prints the suggested k and the gap sizes\nplot(sk)    # eigenvalue spectrum with gap highlighted\n\n\nElbow scan\nclusta_elbow() runs clusta() for a range of k values and plots WCSS, BIC, and silhouette side by side.\nx &lt;- c(rnorm(80, 0), rnorm(80, 6), rnorm(80, 13))\nclusta_elbow(x, k_range = 1:8)\nBoth are second opinions. A clear isolated gap from suggest_k() and an elbow from clusta_elbow() agreeing on the same k is a good sign."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#bootstrap-stability",
+    "href": "posts/clusta-1.0-1/index.html#bootstrap-stability",
+    "title": "clusta",
+    "section": "Bootstrap Stability",
+    "text": "Bootstrap Stability\nAfter clustering, cluster_stability() checks whether the clusters would reappear in a fresh sample. It resamples the data with replacement, re-runs the full S-MPDP pipeline on each resample, and measures the Jaccard overlap between original and resample clusters.\nstab &lt;- cluster_stability(d[, c(\"x\", \"y\")], h = 2,\n                          k_neighbors = 15, B = 50, seed = 42)\nprint(stab)\nplot(stab)\nA common reading of the per-cluster mean Jaccard score:\nabove 0.85 — highly stable\n0.75 to 0.85 — stable\n0.60 to 0.75 — doubtful\nbelow 0.60 — likely an artefact\nTreat a cluster scoring below 0.60 as a feature of this particular sample rather than a real structure in the population."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#sensitivity-analysis",
+    "href": "posts/clusta-1.0-1/index.html#sensitivity-analysis",
+    "title": "clusta",
+    "section": "Sensitivity Analysis",
+    "text": "Sensitivity Analysis\nsmpdp_sensitivity() evaluates combinations of neighbourhood size and cluster count, reporting quality metrics for each combination. Useful when you are unsure about k_neighbors.\nsens &lt;- smpdp_sensitivity(d[, c(\"x\", \"y\")],\n                          k_vec     = 2:4,\n                          kn_vec    = c(10, 15, 20, 30),\n                          B_stab    = 10)\nprint(sens)\nplot(sens)"
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#evaluation-metrics",
+    "href": "posts/clusta-1.0-1/index.html#evaluation-metrics",
+    "title": "clusta",
+    "section": "Evaluation Metrics",
+    "text": "Evaluation Metrics\ncluster_metrics() computes a comprehensive set of internal and external validity scores for any clustering result.\ndata(ceramic)\nX  &lt;- ceramic[, setdiff(names(ceramic), \"class\")]\ncl &lt;- clusta(X, k = 3, method = \"spectral\", k_neighbors = 41)\ncluster_metrics(cl, true_labels = ceramic$class)\n\n\n\n\n\n\n\nMetric\nWhat it measures\n\n\n\n\nARI\nAgreement with ground-truth labels (adjusted for chance)\n\n\nNMI\nNormalised mutual information with ground-truth labels\n\n\nSilhouette\nCohesion vs separation without ground truth\n\n\nPurity\nMajority-class proportion per cluster\n\n\nCalinski-Harabasz\nBetween-to-within variance ratio\n\n\nDavies-Bouldin\nAverage ratio of within-to-between spread\n\n\nDunn\nMinimum inter-cluster distance / maximum intra-cluster diameter"
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#benchmarking",
+    "href": "posts/clusta-1.0-1/index.html#benchmarking",
+    "title": "clusta",
+    "section": "Benchmarking",
+    "text": "Benchmarking\nrun_clustering_benchmarks() compares S-MPDP against k-means, spectral clustering (from the cluster package), HDBSCAN, and agglomerative clustering across several datasets.\nbm &lt;- run_clustering_benchmarks(datasets = \"all\", metrics = \"all\")\nprint(bm)\nfriedman_ranks() summarises the comparison with Friedman rank scores, one row per method, one column per metric."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#bundled-datasets",
+    "href": "posts/clusta-1.0-1/index.html#bundled-datasets",
+    "title": "clusta",
+    "section": "Bundled Datasets",
+    "text": "Bundled Datasets\nSix real datasets are bundled with the package. Each has numeric feature columns and a class factor for validation.\n\n  glass214 glass fragments, 9 oxide predictors, 6 glass types.\n  breast_cancer569 tumour measurements, 30 features, benign vs malignant.\n  raisin900 raisin samples, 7 morphological features, 2 varieties.\n  rice3810 rice samples, 7 shape features, 2 varieties.\n  ceramic88 ceramic fragments, chemical composition, archaeological classification.\n  smpdp_toySmall synthetic dataset for quick demos and testing.\n\nSix synthetic shape generators are also included for experimenting with non-convex structures.\n\nTwo MoonsConcentric CirclesThree SpiralsSmileyV-ShapeCassini\n\n\nd &lt;- gen_two_moons(n = 500)\ncl &lt;- clusta(d[, c(\"x\",\"y\")], k = 2, method = \"spectral\")\nplot(cl)\nTwo interleaved crescent shapes. k-means fails; S-MPDP finds the correct boundary.\n\n\nd &lt;- gen_concentric_circles(n = 2000)\ncl &lt;- clusta(d[, c(\"x\",\"y\")], k = 2, method = \"spectral\")\nplot(cl)\nInner and outer rings. A textbook failure case for any linear or convex method.\n\n\nd &lt;- gen_three_spirals(n = 1200, cycles = 1.4)\ncl &lt;- clusta(d[, c(\"x\",\"y\")], k = 3, method = \"spectral\")\nplot(cl)\nThree interleaved arms. Tests the graph unfolding under high curvature.\n\n\nd &lt;- gen_smiley(n = 400)\ncl &lt;- clusta(d[, c(\"x\",\"y\")], k = 3, method = \"spectral\")\nplot(cl)\nA smile arc and two eyes. Three clusters with very different densities.\n\n\nd &lt;- gen_v_shape(n = 400)\ncl &lt;- clusta(d[, c(\"x\",\"y\")], k = 2, method = \"spectral\")\nplot(cl)\nTwo arms of a V. Non-convex but less extreme than spirals.\n\n\nd &lt;- gen_cassini(n = 2000)\ncl &lt;- clusta(d[, c(\"x\",\"y\")], k = 3, method = \"spectral\")\nplot(cl)\nTwo outer banana-shaped bands and a central disc. Uses the mlbench generator when installed."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#visualisation",
+    "href": "posts/clusta-1.0-1/index.html#visualisation",
+    "title": "clusta",
+    "section": "Visualisation",
+    "text": "Visualisation\n\nCluster PlotSignal PlotConfidence PlotEigengap PlotSimilarity Matrix\n\n\nplot(cl)                  # base graphics\nfviz_clusta(cl)           # ggplot2 version\nScatter plot coloured by cluster assignment. For one-variable results, shows the density with boundaries marked.\n\n\nplot(cl, type = \"signal\")\nThe 1-D spectral signal used by S-MPDP, with fitted density and cluster boundaries overlaid.\n\n\nplot(cl, type = \"confidence\")\nPer-observation assignment confidence, based on distance to the nearest boundary in signal space.\n\n\nsk &lt;- suggest_k(X)\nplot(sk)\nLaplacian eigenvalue spectrum with the largest gap highlighted.\n\n\nplot(cl, type = \"similarity\")\nThe kNN similarity matrix, reordered by cluster. Block structure confirms cluster quality."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#s3-methods",
+    "href": "posts/clusta-1.0-1/index.html#s3-methods",
+    "title": "clusta",
+    "section": "S3 Methods",
+    "text": "S3 Methods\n\nprint(cl)   cluster sizes, centres, WCSS, BIC, silhouette, optimality gap\nsummary(cl)   per-cluster table with size, proportion, within-SS, silhouette width\nplot(cl)   cluster plot (base graphics)\nautoplot(cl)   cluster plot (ggplot2)\nfitted(cl)   centre coordinates for each observation\npredict(cl, newdata)   assign new points to the nearest cluster centre\nfviz_clusta(cl)   ggplot2 visualisation with confidence shading\n\n\nOptimality Gap\nFor the exact one-dimensional methods and exact2d, clusta certifies how close the solution is to the global optimum.\ncl$gap_pct        # certified upper bound on distance from global (0 = provably global)\ncl$lower_bound    # Cauchy-Schwarz lower bound on WCSS\nA gap of 0% means the solution is certifiably the best possible. For spectral and parametric methods the objective is not WCSS, so the gap is not reported."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#shiny-app",
+    "href": "posts/clusta-1.0-1/index.html#shiny-app",
+    "title": "clusta",
+    "section": "Shiny App",
+    "text": "Shiny App\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\", \"ggplot2\"))   # once\nclustaApp()\nThe bundled app covers the full workflow: upload data or pick a built-in dataset, choose the method and k, view cluster plots, signal plots, eigengap, stability results, and a benchmark comparison. No code needed."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#who-is-clusta-for",
+    "href": "posts/clusta-1.0-1/index.html#who-is-clusta-for",
+    "title": "clusta",
+    "section": "Who Is clusta For?",
+    "text": "Who Is clusta For?\n\n  🔬 Applied ResearchersAny domain with non-convex or ring-like cluster structures. The spectral method works where k-means does not.\n  📊 Survey and Social ScienceThe estvar method with the Neyman objective clusters in a way that directly minimises survey estimation variance.\n  🌍 Spatial AnalysisThe graph method respects spatial adjacency constraints, so neighbouring units stay in the same cluster.\n  📈 Time SeriesThe sequence method segments ordered data into contiguous groups along a known ordering.\n  🎓 TeachingThe Shiny app and shape generators make it easy to show students why k-means fails on non-convex data."
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#quick-reference",
+    "href": "posts/clusta-1.0-1/index.html#quick-reference",
+    "title": "clusta",
+    "section": "Quick Reference",
+    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nclusta(data, k)\nCluster using the selected method\n\n\nspectral_mpdp(data, k)\nS-MPDP with full control over parameters\n\n\nmpdp(x, k)\nDistribution-aware DP on one variable\n\n\nsuggest_k(data)\nEigengap estimate of the number of clusters\n\n\nclusta_elbow(data)\nWCSS / BIC / silhouette scan over k\n\n\ncluster_stability(data, h, B)\nBootstrap Jaccard stability\n\n\nsmpdp_sensitivity(data)\nSensitivity over k and k_neighbors\n\n\ncluster_metrics(cl, true_labels)\nARI, NMI, silhouette, purity, and more\n\n\nrun_clustering_benchmarks()\nCompare S-MPDP vs k-means / spectral / HDBSCAN\n\n\nfriedman_ranks(bm)\nFriedman rank summary across methods\n\n\nclusta_compare(data, k)\nSide-by-side comparison with k-means\n\n\nfviz_clusta(cl)\nggplot2 cluster figure\n\n\nclustaApp()\nLaunch interactive Shiny app"
+  },
+  {
+    "objectID": "posts/clusta-1.0-1/index.html#citation",
+    "href": "posts/clusta-1.0-1/index.html#citation",
+    "title": "clusta",
+    "section": "Citation",
+    "text": "Citation\ncitation(\"clusta\")\n\nReddy, K. G., Bulivou, G., & Khan, M. G. M. (2026). clusta: Spectral, Distribution-Aware and Dynamic-Programming Clustering. R package version 1.0-1. https://cran.r-project.org/package=clusta\n\n\n\n\n\n\n\n\nclusta is on CRAN: https://cran.r-project.org/package=clusta A companion paper describing the S-MPDP method and benchmarks is in preparation. We would love to hear how you are using it."
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Blog",
     "section": "",
-    "text": "FitVerse\n\n\nParametric Distribution Fitting in R\n\n\n\nR\n\nFitVerse\n\ndistributions\n\nCRAN\n\n\n\n52 distributions · MLE / MOM / L-moments · GoF tests · Bootstrap CI · Shiny app · v1.0-2\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nstratifyR 2.0-1\n\n\nOptimal Survey Stratification in R\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\nCRAN\n\n\n\nDynamic programming · COBYLA · GLOBAL solver · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-1\n\n\n\n\n\nOct 3, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
+    "text": "stratifyR 2.0-3\n\n\nOptimal Survey Stratification in R\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\nCRAN\n\n\n\nDynamic programming · Exact solver · COBYLA · GLOBAL · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-3\n\n\n\n\n\nOct 21, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nFitVerse\n\n\nParametric Distribution Fitting in R\n\n\n\nR\n\nFitVerse\n\ndistributions\n\nCRAN\n\n\n\n52 distributions · MLE / MOM / L-moments · GoF tests · Bootstrap CI · Shiny app · v1.0-2\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nclusta\n\n\nSpectral, Distribution-Aware and Dynamic-Programming Clustering in R\n\n\n\nR\n\nclusta\n\nclustering\n\nCRAN\n\n\n\nS-MPDP · 9 clustering methods · Globally optimal 1-D partitions · Non-convex clusters · Bootstrap stability · Benchmarks · Shiny app · v1.0-1\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy, Gabiriele Bulivou and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nmultistrata\n\n\nMultivariate Optimum Stratification and Sample Allocation for Surveys\n\n\n\nR\n\nmultistrata\n\nsurvey sampling\n\nstratification\n\nCRAN\n\n\n\nJoint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
   }
 ]
