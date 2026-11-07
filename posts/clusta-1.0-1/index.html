@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Karuna G. Reddy, Gabiriele Bulivou and M. G. M. Khan">
-<meta name="dcterms.date" content="2026-10-04">
-<meta name="description" content="S-MPDP · 9 clustering methods · Globally optimal 1-D partitions · Non-convex clusters · Bootstrap stability · Benchmarks · Shiny app · v1.0-1">
+<meta name="dcterms.date" content="2026-10-30">
+<meta name="description" content="A practical guide to dynamic-programming clustering, S-MPDP, diagnostics, benchmark data, figures, and the Shiny app">
 
-<title>clusta – Karuna Reddy</title>
+<title>clusta 1.0-1 – Karuna Reddy</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -112,6 +112,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -156,28 +185,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#quick-start" id="toc-quick-start" class="nav-link active" data-scroll-target="#quick-start">Quick Start</a></li>
-  <li><a href="#nine-clustering-methods" id="toc-nine-clustering-methods" class="nav-link" data-scroll-target="#nine-clustering-methods">Nine Clustering Methods</a></li>
-  <li><a href="#s-mpdp-the-flagship-method" id="toc-s-mpdp-the-flagship-method" class="nav-link" data-scroll-target="#s-mpdp-the-flagship-method">S-MPDP: The Flagship Method</a></li>
-  <li><a href="#choosing-k" id="toc-choosing-k" class="nav-link" data-scroll-target="#choosing-k">Choosing k</a>
+  <li><a href="#install-and-load-the-package" id="toc-install-and-load-the-package" class="nav-link active" data-scroll-target="#install-and-load-the-package">Install and load the package</a></li>
+  <li><a href="#start-with-one-variable" id="toc-start-with-one-variable" class="nav-link" data-scroll-target="#start-with-one-variable">Start with one variable</a></li>
+  <li><a href="#one-interface-nine-methods" id="toc-one-interface-nine-methods" class="nav-link" data-scroll-target="#one-interface-nine-methods">One interface, nine methods</a>
   <ul class="collapse">
-  <li><a href="#eigengap-method" id="toc-eigengap-method" class="nav-link" data-scroll-target="#eigengap-method">Eigengap method</a></li>
-  <li><a href="#elbow-scan" id="toc-elbow-scan" class="nav-link" data-scroll-target="#elbow-scan">Elbow scan</a></li>
+  <li><a href="#projection-for-several-variables" id="toc-projection-for-several-variables" class="nav-link" data-scroll-target="#projection-for-several-variables">Projection for several variables</a></li>
+  <li><a href="#distribution-aware-boundaries" id="toc-distribution-aware-boundaries" class="nav-link" data-scroll-target="#distribution-aware-boundaries">Distribution-aware boundaries</a></li>
   </ul></li>
-  <li><a href="#bootstrap-stability" id="toc-bootstrap-stability" class="nav-link" data-scroll-target="#bootstrap-stability">Bootstrap Stability</a></li>
-  <li><a href="#sensitivity-analysis" id="toc-sensitivity-analysis" class="nav-link" data-scroll-target="#sensitivity-analysis">Sensitivity Analysis</a></li>
-  <li><a href="#evaluation-metrics" id="toc-evaluation-metrics" class="nav-link" data-scroll-target="#evaluation-metrics">Evaluation Metrics</a></li>
-  <li><a href="#benchmarking" id="toc-benchmarking" class="nav-link" data-scroll-target="#benchmarking">Benchmarking</a></li>
-  <li><a href="#bundled-datasets" id="toc-bundled-datasets" class="nav-link" data-scroll-target="#bundled-datasets">Bundled Datasets</a></li>
-  <li><a href="#visualisation" id="toc-visualisation" class="nav-link" data-scroll-target="#visualisation">Visualisation</a></li>
-  <li><a href="#s3-methods" id="toc-s3-methods" class="nav-link" data-scroll-target="#s3-methods">S3 Methods</a>
+  <li><a href="#s-mpdp-for-non-convex-clusters" id="toc-s-mpdp-for-non-convex-clusters" class="nav-link" data-scroll-target="#s-mpdp-for-non-convex-clusters">S-MPDP for non-convex clusters</a>
   <ul class="collapse">
-  <li><a href="#optimality-gap" id="toc-optimality-gap" class="nav-link" data-scroll-target="#optimality-gap">Optimality Gap</a></li>
+  <li><a href="#a-two-moons-example" id="toc-a-two-moons-example" class="nav-link" data-scroll-target="#a-two-moons-example">A two-moons example</a></li>
+  <li><a href="#read-the-graph-checks" id="toc-read-the-graph-checks" class="nav-link" data-scroll-target="#read-the-graph-checks">Read the graph checks</a></li>
   </ul></li>
-  <li><a href="#shiny-app" id="toc-shiny-app" class="nav-link" data-scroll-target="#shiny-app">Shiny App</a></li>
-  <li><a href="#who-is-clusta-for" id="toc-who-is-clusta-for" class="nav-link" data-scroll-target="#who-is-clusta-for">Who Is clusta For?</a></li>
-  <li><a href="#quick-reference" id="toc-quick-reference" class="nav-link" data-scroll-target="#quick-reference">Quick Reference</a></li>
-  <li><a href="#citation" id="toc-citation" class="nav-link" data-scroll-target="#citation">Citation</a></li>
+  <li><a href="#six-views-of-an-s-mpdp-result" id="toc-six-views-of-an-s-mpdp-result" class="nav-link" data-scroll-target="#six-views-of-an-s-mpdp-result">Six views of an S-MPDP result</a></li>
+  <li><a href="#choosing-the-number-of-clusters" id="toc-choosing-the-number-of-clusters" class="nav-link" data-scroll-target="#choosing-the-number-of-clusters">Choosing the number of clusters</a>
+  <ul class="collapse">
+  <li><a href="#spectral-eigengap-guide" id="toc-spectral-eigengap-guide" class="nav-link" data-scroll-target="#spectral-eigengap-guide">Spectral eigengap guide</a></li>
+  <li><a href="#diagnostic-scan-over-k" id="toc-diagnostic-scan-over-k" class="nav-link" data-scroll-target="#diagnostic-scan-over-k">Diagnostic scan over k</a></li>
+  </ul></li>
+  <li><a href="#sensitivity-and-bootstrap-stability" id="toc-sensitivity-and-bootstrap-stability" class="nav-link" data-scroll-target="#sensitivity-and-bootstrap-stability">Sensitivity and bootstrap stability</a>
+  <ul class="collapse">
+  <li><a href="#sensitivity-to-h-and-k_neighbors" id="toc-sensitivity-to-h-and-k_neighbors" class="nav-link" data-scroll-target="#sensitivity-to-h-and-k_neighbors">Sensitivity to h and k_neighbors</a></li>
+  <li><a href="#bootstrap-jaccard-stability" id="toc-bootstrap-jaccard-stability" class="nav-link" data-scroll-target="#bootstrap-jaccard-stability">Bootstrap Jaccard stability</a></li>
+  </ul></li>
+  <li><a href="#evaluate-a-clustering" id="toc-evaluate-a-clustering" class="nav-link" data-scroll-target="#evaluate-a-clustering">Evaluate a clustering</a></li>
+  <li><a href="#compare-methods-fairly" id="toc-compare-methods-fairly" class="nav-link" data-scroll-target="#compare-methods-fairly">Compare methods fairly</a></li>
+  <li><a href="#data-included-with-clusta" id="toc-data-included-with-clusta" class="nav-link" data-scroll-target="#data-included-with-clusta">Data included with clusta</a></li>
+  <li><a href="#work-with-the-returned-objects" id="toc-work-with-the-returned-objects" class="nav-link" data-scroll-target="#work-with-the-returned-objects">Work with the returned objects</a></li>
+  <li><a href="#explore-the-package-in-the-shiny-app" id="toc-explore-the-package-in-the-shiny-app" class="nav-link" data-scroll-target="#explore-the-package-in-the-shiny-app">Explore the package in the Shiny app</a>
+  <ul class="collapse">
+  <li><a href="#built-in-app-examples" id="toc-built-in-app-examples" class="nav-link" data-scroll-target="#built-in-app-examples">Built-in app examples</a></li>
+  <li><a href="#upload-your-own-csv" id="toc-upload-your-own-csv" class="nav-link" data-scroll-target="#upload-your-own-csv">Upload your own CSV</a></li>
+  </ul></li>
+  <li><a href="#a-careful-analysis-workflow" id="toc-a-careful-analysis-workflow" class="nav-link" data-scroll-target="#a-careful-analysis-workflow">A careful analysis workflow</a></li>
+  <li><a href="#what-the-package-does-not-claim" id="toc-what-the-package-does-not-claim" class="nav-link" data-scroll-target="#what-the-package-does-not-claim">What the package does not claim</a></li>
+  <li><a href="#quick-reference" id="toc-quick-reference" class="nav-link" data-scroll-target="#quick-reference">Quick reference</a></li>
+  <li><a href="#citation-and-authors" id="toc-citation-and-authors" class="nav-link" data-scroll-target="#citation-and-authors">Citation and authors</a></li>
   </ul>
 </nav>
     </div>
@@ -186,19 +229,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">clusta</h1>
-<p class="subtitle lead">Spectral, Distribution-Aware and Dynamic-Programming Clustering in R</p>
+<h1 class="title">clusta 1.0-1</h1>
+<p class="subtitle lead">From ordered data to non-convex clusters</p>
   <div class="quarto-categories">
     <div class="quarto-category">R</div>
     <div class="quarto-category">clusta</div>
     <div class="quarto-category">clustering</div>
-    <div class="quarto-category">CRAN</div>
+    <div class="quarto-category">dynamic programming</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    S-MPDP · 9 clustering methods · Globally optimal 1-D partitions · Non-convex clusters · Bootstrap stability · Benchmarks · Shiny app · v1.0-1
+    A practical guide to dynamic-programming clustering, S-MPDP, diagnostics, benchmark data, figures, and the Shiny app
   </div>
 </div>
 
@@ -215,7 +258,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">October 4, 2026</p>
+      <p class="date">October 30, 2026</p>
     </div>
   </div>
   
@@ -228,472 +271,573 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <style>
-.pkg-hero {
-  display: flex; align-items: center; gap: 28px;
-  padding: 24px 28px;
-  background: linear-gradient(135deg, #0A1628 0%, #0D2B6B 60%, #1a4a9e 100%);
-  border-radius: 10px; margin-bottom: 28px; color: white;
-}
-.pkg-hero img { width: 110px; height: auto; flex-shrink: 0; border-radius: 6px; }
-.pkg-hero h1 { margin: 0 0 4px 0; font-size: 2.4rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
-.pkg-hero .subtitle { font-size: 1.05rem; color: #90CAF9; margin: 0 0 10px 0; }
-.pkg-hero .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.pkg-hero .badges a img, .pkg-hero .badges img { height: 22px; vertical-align: middle; border-radius: 0; width: auto; }
-.pkg-hero .install-box {
-  background: rgba(0,0,0,0.4); border-radius: 6px; padding: 10px 14px;
-  font-family: monospace; font-size: 0.9rem; color: #80DEEA;
-  margin-top: 10px; border-left: 3px solid #E69F00;
-}
-.fn-card {
-  border-left: 4px solid #0D2B6B; padding: 12px 16px;
-  background: #f0f4ff; border-radius: 0 6px 6px 0; margin: 12px 0; line-height: 1.9;
-}
-.fn-card code { background: #BBDEFB; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
-.method-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
-.method-card { border-radius: 8px; padding: 14px 16px; background: white; border: 1px solid #C5CAE9; }
-.method-card h4 { margin: 0 0 5px 0; font-size: 0.92rem; color: #0D2B6B; }
-.method-card p { margin: 0; font-size: 0.81rem; color: #444; line-height: 1.45; }
-.method-card .tag { font-size: 0.72rem; font-weight: 700; background: #E8EAF6; color: #3949AB; border-radius: 4px; padding: 1px 6px; margin-bottom: 5px; display: inline-block; }
-.dataset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 14px 0; }
-.dataset-card { border-radius: 6px; padding: 10px 13px; background: #f5f7ff; border: 1px solid #C5CAE9; }
-.dataset-card h4 { margin: 0 0 3px 0; font-size: 0.88rem; color: #1a3a6e; }
-.dataset-card p { margin: 0; font-size: 0.78rem; color: #555; }
-.use-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
-.use-card { border-radius: 8px; padding: 14px; background: white; border: 1px solid #C5CAE9; }
-.use-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; color: #0D2B6B; }
-.use-card p { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
-.stab-band { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; font-weight: 600; margin: 2px; }
-.stab-high { background: #e8f5e9; color: #1b5e20; }
-.stab-ok   { background: #fff9c4; color: #f57f17; }
-.stab-low  { background: #fce4ec; color: #880e4f; }
+.pkg-hero { display:flex; align-items:center; gap:28px; padding:24px 28px; background:linear-gradient(135deg,#0A1628 0%,#0D2B6B 60%,#1a4a9e 100%); border-radius:10px; margin-bottom:28px; color:white; }
+.pkg-hero img { width:110px; height:auto; flex-shrink:0; border-radius:6px; }
+.pkg-hero h1 { margin:0 0 4px 0; font-size:2.4rem; font-weight:800; color:white; letter-spacing:-0.5px; }
+.pkg-hero .subtitle { font-size:1.05rem; color:#90CAF9; margin:0 0 10px 0; }
+.pkg-hero .badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.pkg-hero .badges img { height:22px; vertical-align:middle; border-radius:0; width:auto; }
+.pkg-hero .install-box { background:rgba(0,0,0,0.4); border-radius:6px; padding:10px 14px; font-family:monospace; font-size:0.9rem; color:#80DEEA; margin-top:10px; border-left:3px solid #E69F00; }
+.method-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(225px,1fr)); gap:12px; margin:16px 0; }
+.method-card { border-radius:8px; padding:14px 16px; background:white; border:1px solid #C5CAE9; }
+.method-card h4 { margin:0 0 5px 0; font-size:0.94rem; color:#0D2B6B; }
+.method-card p { margin:0; font-size:0.83rem; color:#444; line-height:1.48; }
+.method-card .tag { font-size:0.72rem; font-weight:700; background:#E8EAF6; color:#3949AB; border-radius:4px; padding:1px 6px; margin-bottom:5px; display:inline-block; }
+.dataset-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; margin:14px 0; }
+.dataset-card { border-radius:6px; padding:10px 13px; background:#f5f7ff; border:1px solid #C5CAE9; }
+.dataset-card h4 { margin:0 0 3px 0; font-size:0.88rem; color:#1a3a6e; }
+.dataset-card p { margin:0; font-size:0.79rem; color:#555; line-height:1.42; }
+.step-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin:16px 0; }
+.step-card { border-radius:8px; padding:14px; background:#f8fbff; border-top:4px solid #1565C0; }
+.step-card h4 { margin:0 0 6px 0; font-size:0.94rem; color:#0D2B6B; }
+.step-card p { margin:0; font-size:0.82rem; color:#444; line-height:1.48; }
+.fn-card { border-left:4px solid #0D2B6B; padding:12px 16px; background:#f0f4ff; border-radius:0 6px 6px 0; margin:12px 0; line-height:1.9; }
+.fn-card code { background:#BBDEFB; padding:1px 5px; border-radius:3px; font-size:0.88em; }
 </style>
 
 <div class="pkg-hero">
   <img src="clusta-logo.png" alt="clusta logo">
   <div>
-    <h1>clusta</h1>
+    <h1>clusta 1.0-1</h1>
     <div class="subtitle">Spectral, Distribution-Aware and Dynamic-Programming Clustering</div>
     <div class="badges">
-      <a href="https://cran.r-project.org/package=clusta"><img src="https://www.r-pkg.org/badges/version/clusta" alt="CRAN"></a>
-      <a href="https://cran.r-project.org/package=clusta"><img src="https://cranlogs.r-pkg.org/badges/clusta" alt="Downloads"></a>
-      <img src="https://img.shields.io/badge/license-GPL--3-blue.svg" alt="GPL-3">
-      <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1+">
+      <img src="https://img.shields.io/badge/version-1.0--1-0D2B6B.svg" alt="Version 1.0-1">
+      <img src="https://img.shields.io/badge/license-GPL%20%28%3E%3D%203%29-blue.svg" alt="GPL version 3 or later">
+      <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1 or later">
     </div>
-    <div class="install-box">
-      install.packages("clusta") &nbsp;·&nbsp; library(clusta)
-    </div>
+    <div class="install-box">remotes::install_github("karunaredz/clusta")</div>
   </div>
 </div>
-<p>Most clustering methods fail on non-convex shapes. Two interleaved crescents, concentric rings, or three spirals will confuse k-means because it partitions space with straight cuts. clusta is built around <strong>S-MPDP</strong> (Spectral Mathematical Programming Dynamic Programming), a method that first unfolds the data into a one-dimensional signal using a spectral graph, then finds cluster boundaries on that signal with an exact dynamic program.</p>
-<p>Beyond S-MPDP, clusta also provides globally optimal one-dimensional clustering, exact solutions for two-variable problems, projection-based methods for higher dimensions, and sequence or graph-constrained clustering. One consistent interface covers all of them.</p>
-<hr>
-<section id="quick-start" class="level2">
-<h2 class="anchored" data-anchor-id="quick-start">Quick Start</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(clusta)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># one variable: globally optimal partition</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>x  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(<span class="dv">60</span>, <span class="dv">0</span>), <span class="fu">rnorm</span>(<span class="dv">60</span>, <span class="dv">6</span>), <span class="fu">rnorm</span>(<span class="dv">60</span>, <span class="dv">13</span>))</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(x, <span class="at">k =</span> <span class="dv">3</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(cl)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># two moons: non-convex, use S-MPDP</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>d  <span class="ot">&lt;-</span> <span class="fu">gen_two_moons</span>()</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">2</span>, <span class="at">method =</span> <span class="st">"spectral"</span>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># iris: multivariate, project to PC1 then exact DP</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(iris[, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>], <span class="at">k =</span> <span class="dv">3</span>, <span class="at">method =</span> <span class="st">"projection"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<hr>
-</section>
-<section id="nine-clustering-methods" class="level2">
-<h2 class="anchored" data-anchor-id="nine-clustering-methods">Nine Clustering Methods</h2>
-<p>clusta picks a sensible default based on the data (one variable gives <code>"wcss"</code>, multiple variables give <code>"projection"</code>), or you can set <code>method</code> explicitly.</p>
-<div class="method-grid">
-  <div class="method-card">
-    <span class="tag">1D EXACT</span>
-    <h4 class="anchored">wcss</h4>
-    <p>Globally optimal contiguous partition of one variable by minimising within-cluster sum of squares. Returns a certified gap of 0%.</p>
-  </div>
-  <div class="method-card">
-    <span class="tag">MULTIVARIATE</span>
-    <h4 class="anchored">projection</h4>
-    <p>Projects to the first principal component (or a custom direction) then runs the exact 1-D DP on the score. Exact on the projection axis.</p>
-  </div>
-  <div class="method-card">
-    <span class="tag">MULTIVARIATE</span>
-    <h4 class="anchored">estvar</h4>
-    <p>Exact DP using an estimation-variance criterion. The Neyman objective (sum of Wh*Sh) is globally optimal. Also supports Gaussian and WCSS objectives.</p>
-  </div>
-  <div class="method-card">
-    <span class="tag">DISTRIBUTION</span>
-    <h4 class="anchored">parametric</h4>
-    <p>Fits the best parametric distribution by AIC, then places boundaries with a DP on the model's Wh*Sh cost. Optionally uses FitVerse for 52 families.</p>
-  </div>
-  <div class="method-card">
-    <span class="tag">FLAGSHIP</span>
-    <h4 class="anchored">spectral</h4>
-    <p>S-MPDP. Builds a k-NN graph, unfolds the data to a 1-D signal via the normalised Laplacian, then runs the distribution-fitting DP. Handles non-convex shapes.</p>
-  </div>
-  <div class="method-card">
-    <span class="tag">2D EXACT</span>
-    <h4 class="anchored">exact2d</h4>
-    <p>Exactly two variables, k = 2. Enumerates all separating directions and returns the certified global optimum in full 2-D space.</p>
-  </div>
-  <div class="method-card">
-    <span class="tag">2D</span>
-    <h4 class="anchored">sweep</h4>
-    <p>Two variables, any k. Global for k = 2; best clustering separable by parallel lines for k &gt;= 3. Report the optimality gap to assess quality.</p>
-  </div>
-  <div class="method-card">
-    <span class="tag">SEQUENTIAL</span>
-    <h4 class="anchored">sequence</h4>
-    <p>Ordered data (time series, spatial transects, trajectories). Exact multivariate segment DP along the given order.</p>
-  </div>
-  <div class="method-card">
-    <span class="tag">SPATIAL</span>
-    <h4 class="anchored">graph</h4>
-    <p>Contiguity-constrained clustering on a neighbourhood graph using minimum spanning tree and greedy edge removal. Respects spatial adjacency.</p>
-  </div>
-</div>
-<hr>
-</section>
-<section id="s-mpdp-the-flagship-method" class="level2">
-<h2 class="anchored" data-anchor-id="s-mpdp-the-flagship-method">S-MPDP: The Flagship Method</h2>
-<p>Standard spectral clustering runs k-means on the eigenvectors of a graph Laplacian. S-MPDP replaces that k-means step with a dynamic program, which means it finds boundaries on the spectral signal exactly rather than approximately.</p>
-<p>The algorithm has two stages. Stage 1 builds a mutual k-nearest-neighbour graph and computes the normalised Laplacian. The leading eigenvectors unfold the local neighbourhood structure into a one-dimensional score. Stage 2 fits the best parametric distribution to that score by AIC and places boundaries with an exact DP. The distribution fitting step lets the DP account for the shape of the signal rather than treating it as uniform.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># dedicated interface with full control</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">spectral_mpdp</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">2</span>, <span class="at">k_neighbors =</span> <span class="dv">15</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># or through clusta()</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">2</span>, <span class="at">method =</span> <span class="st">"spectral"</span>, <span class="at">k_neighbors =</span> <span class="dv">15</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Clustering often begins with a simple question: which observations belong together? The answer becomes less simple when groups form rings, crescents, spirals, or ordered segments. A single method is rarely suitable for all of these settings.</p>
+<p>We developed <strong>clusta</strong> to bring several related clustering tools into one R package. The common idea is to use dynamic programming when observations can be represented on an ordered axis. On that axis, the package can search all valid contiguous partitions and find the best boundary placement for the chosen objective. For multivariate data, clusta provides several ways to construct or use such an ordering.</p>
+<p>The package’s main multivariate method is <strong>S-MPDP</strong>, short for Spectral Mathematical Programming Dynamic Programming clustering. S-MPDP uses a neighbourhood graph to unfold complex cluster shapes into a one-dimensional signal. It then fits a distribution to that signal and places cluster boundaries by dynamic programming.</p>
+<p>This article gives a practical tour of version 1.0-1. It begins with the simplest one-variable problem, moves to non-convex multivariate data, and ends with diagnostics, benchmarking, data, figures, and the Shiny app.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>FitVerse integration
+<span class="screen-reader-only">Note</span>Publication status
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Set <code>fit_engine = "fitverse"</code> in <code>method = "parametric"</code> to search all 52 distribution families rather than the default five. Set <code>fit_engine = "best"</code> to run both engines and keep whichever gives lower empirical Wh*Sh.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(x, <span class="at">k =</span> <span class="dv">3</span>, <span class="at">method =</span> <span class="st">"parametric"</span>, <span class="at">fit_engine =</span> <span class="st">"fitverse"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The package is available on GitHub while its CRAN submission is being completed. Install it from GitHub for now, as shown below. The CRAN installation command and permanent CRAN link will be added here after acceptance.</p>
 </div>
 </div>
-<hr>
+<section id="install-and-load-the-package" class="level2">
+<h2 class="anchored" data-anchor-id="install-and-load-the-package">Install and load the package</h2>
+<p>Install the development version from GitHub:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("remotes")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"karunaredz/clusta"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(clusta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The core package uses <code>fitdistrplus</code>. Other packages are suggested rather than required. They add the Shiny app, <code>ggplot2</code> figures, some validation measures, additional benchmark methods, and the optional FitVerse distribution engine.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Optional tools used in later sections</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"shiny"</span>, <span class="st">"bslib"</span>, <span class="st">"ggplot2"</span>, <span class="st">"DT"</span>, <span class="st">"cluster"</span>, <span class="st">"clue"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mclust"</span>, <span class="st">"dbscan"</span>, <span class="st">"mlbench"</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>You can see the package guides at any time:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vignette</span>(<span class="st">"clusta"</span>, <span class="at">package =</span> <span class="st">"clusta"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">vignette</span>(<span class="st">"smpdp"</span>, <span class="at">package =</span> <span class="st">"clusta"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">help</span>(<span class="at">package =</span> <span class="st">"clusta"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="choosing-k" class="level2">
-<h2 class="anchored" data-anchor-id="choosing-k">Choosing k</h2>
-<section id="eigengap-method" class="level3">
-<h3 class="anchored" data-anchor-id="eigengap-method">Eigengap method</h3>
-<p>The Stage 1 graph is already built during clustering, so reading its Laplacian spectrum is cheap. A clear gap between consecutive eigenvalues points at the number of clusters in the data.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sk <span class="ot">&lt;-</span> <span class="fu">suggest_k</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)], <span class="at">k_neighbors =</span> <span class="dv">15</span>, <span class="at">k_max =</span> <span class="dv">8</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sk          <span class="co"># prints the suggested k and the gap sizes</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sk)    <span class="co"># eigenvalue spectrum with gap highlighted</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="start-with-one-variable" class="level2">
+<h2 class="anchored" data-anchor-id="start-with-one-variable">Start with one variable</h2>
+<p>Suppose the data contain three groups along a single measured variable. Here the natural clusters are contiguous intervals. The default <code>wcss</code> method finds the partition that minimises the total within-cluster sum of squares.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rnorm</span>(<span class="dv">60</span>, <span class="at">mean =</span> <span class="dv">0</span>,  <span class="at">sd =</span> <span class="fl">0.8</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rnorm</span>(<span class="dv">60</span>, <span class="at">mean =</span> <span class="dv">6</span>,  <span class="at">sd =</span> <span class="fl">1.0</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rnorm</span>(<span class="dv">60</span>, <span class="at">mean =</span> <span class="dv">13</span>, <span class="at">sd =</span> <span class="fl">1.2</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>fit_1d <span class="ot">&lt;-</span> <span class="fu">clusta</span>(x, <span class="at">k =</span> <span class="dv">3</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>fit_1d</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_1d)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_1d)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For one variable, the dynamic program searches the complete set of contiguous three-group partitions. The result is therefore the global minimum of the stated WCSS problem. The printed object reports cluster sizes, centres, WCSS, BIC, silhouette width, and the optimality statement.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(fit_1d<span class="sc">$</span>cluster)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>fit_1d<span class="sc">$</span>boundaries</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fit_1d<span class="sc">$</span>tot.withinss</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>fit_1d<span class="sc">$</span>gap_pct</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>gap_pct = 0</code> certifies a global optimum for the WCSS problem. A nonzero value is a certified upper bound based on the package’s lower bound. It can be conservative.</p>
 </section>
-<section id="elbow-scan" class="level3">
-<h3 class="anchored" data-anchor-id="elbow-scan">Elbow scan</h3>
-<p><code>clusta_elbow()</code> runs <code>clusta()</code> for a range of k values and plots WCSS, BIC, and silhouette side by side.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(<span class="dv">80</span>, <span class="dv">0</span>), <span class="fu">rnorm</span>(<span class="dv">80</span>, <span class="dv">6</span>), <span class="fu">rnorm</span>(<span class="dv">80</span>, <span class="dv">13</span>))</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">clusta_elbow</span>(x, <span class="at">k_range =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Both are second opinions. A clear isolated gap from <code>suggest_k()</code> and an elbow from <code>clusta_elbow()</code> agreeing on the same k is a good sign.</p>
-<hr>
+<section id="one-interface-nine-methods" class="level2">
+<h2 class="anchored" data-anchor-id="one-interface-nine-methods">One interface, nine methods</h2>
+<p>The <code>clusta()</code> function gives access to nine methods. If <code>method</code> is omitted, the package uses <code>wcss</code> for one variable and <code>projection</code> for multivariate data.</p>
+<div class="method-grid">
+  <div class="method-card"><span class="tag">ONE VARIABLE</span><h4 class="anchored">wcss</h4><p>Finds the globally optimal contiguous partition under within-cluster sum of squares.</p></div>
+  <div class="method-card"><span class="tag">ONE OR MORE VARIABLES</span><h4 class="anchored">projection</h4><p>Uses PC1, a supplied direction, or a supplied score. It then solves the one-dimensional WCSS problem exactly on that score.</p></div>
+  <div class="method-card"><span class="tag">ESTIMATION VARIANCE</span><h4 class="anchored">estvar</h4><p>Uses an exact dynamic program on one variable or a projection score. Objectives include Neyman, Gaussian, and WCSS costs.</p></div>
+  <div class="method-card"><span class="tag">DISTRIBUTION AWARE</span><h4 class="anchored">parametric</h4><p>Fits a distribution by AIC and places model-based boundaries by dynamic programming on a numerical grid.</p></div>
+  <div class="method-card"><span class="tag">NON-CONVEX DATA</span><h4 class="anchored">spectral</h4><p>Runs S-MPDP. A spectral graph representation is compressed to one signal, then partitioned by the distribution-aware dynamic program.</p></div>
+  <div class="method-card"><span class="tag">TWO VARIABLES</span><h4 class="anchored">exact2d</h4><p>For exactly two variables and k = 2. It enumerates separating directions and certifies the full-space WCSS optimum.</p></div>
+  <div class="method-card"><span class="tag">TWO VARIABLES</span><h4 class="anchored">sweep</h4><p>Searches separating directions for any k. It is global for k = 2 and finds the best parallel-line partition for k greater than 2.</p></div>
+  <div class="method-card"><span class="tag">ORDERED ROWS</span><h4 class="anchored">sequence</h4><p>Finds the exact multivariate segmentation along a known order, such as time, distance, or a transect.</p></div>
+  <div class="method-card"><span class="tag">GRAPH HEURISTIC</span><h4 class="anchored">graph</h4><p>Builds a Euclidean minimum spanning tree and removes edges greedily to reduce WCSS. It is a useful heuristic, not an exact graph partition.</p></div>
+</div>
+<p>These methods do not make the same optimality claim. For example, <code>projection</code> is exact after the projection has been chosen, not in the original multivariate space. S-MPDP is exact for its Stage 2 boundary problem on the fitted one-dimensional signal, not for every possible partition of the original data. Keeping this distinction clear is important when reporting results.</p>
+<section id="projection-for-several-variables" class="level3">
+<h3 class="anchored" data-anchor-id="projection-for-several-variables">Projection for several variables</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit_iris <span class="ot">&lt;-</span> <span class="fu">clusta</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  iris[, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>],</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">k =</span> <span class="dv">3</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"projection"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale =</span> <span class="cn">TRUE</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>fit_iris</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_iris)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>You may supply your own direction or score when the scientific problem already provides a meaningful order.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fit_direction <span class="ot">&lt;-</span> <span class="fu">clusta</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  iris[, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>],</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">k =</span> <span class="dv">3</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"projection"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="distribution-aware-boundaries" class="level3">
+<h3 class="anchored" data-anchor-id="distribution-aware-boundaries">Distribution-aware boundaries</h3>
+<p>The <code>parametric</code> method first fits a distribution to the variable or projection score. The default engine compares Normal, Log-Normal, Gamma, Weibull, and Exponential families when their supports are suitable. It selects by AIC and places boundaries by minimising the fitted model’s total <span class="math inline">\(W_hS_h\)</span> cost on a numerical grid.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">321</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rgamma</span>(<span class="dv">120</span>, <span class="at">shape =</span> <span class="dv">2</span>, <span class="at">rate =</span> <span class="dv">1</span>),</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>       <span class="fu">rgamma</span>(<span class="dv">80</span>, <span class="at">shape =</span> <span class="dv">7</span>, <span class="at">rate =</span> <span class="fl">0.8</span>))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>fit_parametric <span class="ot">&lt;-</span> <span class="fu">clusta</span>(y, <span class="at">k =</span> <span class="dv">3</span>, <span class="at">method =</span> <span class="st">"parametric"</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>fit_parametric<span class="sc">$</span>distr</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>fit_parametric<span class="sc">$</span>fit_params</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_parametric)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If the optional FitVerse package is installed, <code>fit_engine = "fitverse"</code> searches its larger family collection. <code>fit_engine = "best"</code> tries both engines and keeps the boundary set with the lower empirical <span class="math inline">\(W_hS_h\)</span> value.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fit_wide <span class="ot">&lt;-</span> <span class="fu">clusta</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  y,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">k =</span> <span class="dv">3</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"parametric"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">fit_engine =</span> <span class="st">"fitverse"</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">fit_dists =</span> <span class="st">"all"</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 </section>
-<section id="bootstrap-stability" class="level2">
-<h2 class="anchored" data-anchor-id="bootstrap-stability">Bootstrap Stability</h2>
-<p>After clustering, <code>cluster_stability()</code> checks whether the clusters would reappear in a fresh sample. It resamples the data with replacement, re-runs the full S-MPDP pipeline on each resample, and measures the Jaccard overlap between original and resample clusters.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>stab <span class="ot">&lt;-</span> <span class="fu">cluster_stability</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)], <span class="at">h =</span> <span class="dv">2</span>,</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">k_neighbors =</span> <span class="dv">15</span>, <span class="at">B =</span> <span class="dv">50</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(stab)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(stab)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A common reading of the per-cluster mean Jaccard score:</p>
-<span class="stab-band stab-high">above 0.85 — highly stable</span>
-<span class="stab-band stab-ok">0.75 to 0.85 — stable</span>
-<span class="stab-band stab-ok">0.60 to 0.75 — doubtful</span>
-<span class="stab-band stab-low">below 0.60 — likely an artefact</span>
-<p>Treat a cluster scoring below 0.60 as a feature of this particular sample rather than a real structure in the population.</p>
-<hr>
+<section id="s-mpdp-for-non-convex-clusters" class="level2">
+<h2 class="anchored" data-anchor-id="s-mpdp-for-non-convex-clusters">S-MPDP for non-convex clusters</h2>
+<p>K-means is useful when groups are compact and roughly spherical. It is poorly matched to two moons, concentric rings, or intertwined spirals because those groups cannot be separated well by nearest-centre regions. S-MPDP takes a different route.</p>
+<div class="step-grid">
+  <div class="step-card"><h4 class="anchored">1. Build a local graph</h4><p>Construct a locally scaled k-nearest-neighbour graph. The default mutual rule keeps an edge only when each point selects the other.</p></div>
+  <div class="step-card"><h4 class="anchored">2. Unfold the data</h4><p>Use the normalised Laplacian, its leading eigenvectors, row normalisation, and PCA to produce one ordered signal.</p></div>
+  <div class="step-card"><h4 class="anchored">3. Fit the signal</h4><p>Compare candidate distributions by AIC and retain the best supported model for the spectral signal.</p></div>
+  <div class="step-card"><h4 class="anchored">4. Place boundaries</h4><p>Use dynamic programming to select the Stage 2 boundaries and map the resulting labels back to the original observations.</p></div>
+</div>
+<section id="a-two-moons-example" class="level3">
+<h3 class="anchored" data-anchor-id="a-two-moons-example">A two-moons example</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>moons <span class="ot">&lt;-</span> <span class="fu">gen_two_moons</span>(<span class="at">n =</span> <span class="dv">500</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> moons[, <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>smpdp_fit <span class="ot">&lt;-</span> <span class="fu">spectral_mpdp</span>(</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  X,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">h =</span> <span class="dv">2</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">k_neighbors =</span> <span class="dv">15</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">mutual =</span> <span class="cn">TRUE</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>smpdp_fit</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(smpdp_fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The dedicated <code>spectral_mpdp()</code> interface returns an object of class <code>smpdp</code>. Its main table contains the original features, the spectral score, the assigned cluster, and an assignment-confidence value.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(smpdp_fit<span class="sc">$</span>cluster_results)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(smpdp_fit<span class="sc">$</span>cluster_results<span class="sc">$</span>cluster)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The same method is also available through the common interface:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fit_common <span class="ot">&lt;-</span> <span class="fu">clusta</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  X,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">k =</span> <span class="dv">2</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"spectral"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">k_neighbors =</span> <span class="dv">15</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Use <code>spectral_mpdp()</code> when you want all six S-MPDP figures and the Stage 1 and Stage 2 details. Use <code>clusta(..., method = "spectral")</code> when you want the common <code>clusta</code> object and its S3 methods.</p>
 </section>
-<section id="sensitivity-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="sensitivity-analysis">Sensitivity Analysis</h2>
-<p><code>smpdp_sensitivity()</code> evaluates combinations of neighbourhood size and cluster count, reporting quality metrics for each combination. Useful when you are unsure about <code>k_neighbors</code>.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sens <span class="ot">&lt;-</span> <span class="fu">smpdp_sensitivity</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)],</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">k_vec     =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>,</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">kn_vec    =</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">30</span>),</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                          <span class="at">B_stab    =</span> <span class="dv">10</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(sens)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sens)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<hr>
+<section id="read-the-graph-checks" class="level3">
+<h3 class="anchored" data-anchor-id="read-the-graph-checks">Read the graph checks</h3>
+<p><code>k_neighbors</code> is the main S-MPDP tuning setting. Small values keep the graph local, but may leave isolated points or too many connected components. Large values connect more of the data, but can blur local geometry.</p>
+<p>Every S-MPDP result reports the number of graph components and isolated observations. Treat a connectivity warning as part of the analysis. It usually means that <code>k_neighbors</code> should be increased, or that the union graph should be examined with <code>mutual = FALSE</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>union_fit <span class="ot">&lt;-</span> <span class="fu">spectral_mpdp</span>(X, <span class="at">h =</span> <span class="dv">2</span>, <span class="at">k_neighbors =</span> <span class="dv">15</span>, <span class="at">mutual =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The mutual and union rules answer slightly different graph questions. It is better to report which rule was used than to switch between them without explanation.</p>
 </section>
-<section id="evaluation-metrics" class="level2">
-<h2 class="anchored" data-anchor-id="evaluation-metrics">Evaluation Metrics</h2>
-<p><code>cluster_metrics()</code> computes a comprehensive set of internal and external validity scores for any clustering result.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ceramic)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>X  <span class="ot">&lt;-</span> ceramic[, <span class="fu">setdiff</span>(<span class="fu">names</span>(ceramic), <span class="st">"class"</span>)]</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(X, <span class="at">k =</span> <span class="dv">3</span>, <span class="at">method =</span> <span class="st">"spectral"</span>, <span class="at">k_neighbors =</span> <span class="dv">41</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cluster_metrics</span>(cl, <span class="at">true_labels =</span> ceramic<span class="sc">$</span>class)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="six-views-of-an-s-mpdp-result" class="level2">
+<h2 class="anchored" data-anchor-id="six-views-of-an-s-mpdp-result">Six views of an S-MPDP result</h2>
+<p>The package provides six matching base R and <code>ggplot2</code> views.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(smpdp_fit, <span class="st">"clusters"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(smpdp_fit, <span class="st">"signal"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(smpdp_fit, <span class="st">"confidence"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(smpdp_fit, <span class="st">"eigengap"</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(smpdp_fit, <span class="st">"similarity"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(smpdp_fit, <span class="st">"profile"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The cluster map uses the two original variables when there are exactly two. For higher-dimensional data, it displays the first two principal components. The signal plot shows where Stage 2 placed the boundaries. The confidence plot highlights observations close to a boundary. The similarity plot helps you inspect graph block structure, while the profile plot compares standardised feature means across clusters.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">autoplot</span>(smpdp_fit, <span class="st">"clusters"</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">autoplot</span>(smpdp_fit, <span class="st">"signal"</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">autoplot</span>(smpdp_fit, <span class="st">"profile"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For an ordinary <code>clusta</code> object, use <code>plot()</code> for base graphics or <code>fviz_clusta()</code> for a <code>ggplot2</code> figure.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_iris, <span class="st">"clusters"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_iris, <span class="st">"silhouette"</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_clusta</span>(fit_iris, <span class="at">type =</span> <span class="st">"clusters"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="choosing-the-number-of-clusters" class="level2">
+<h2 class="anchored" data-anchor-id="choosing-the-number-of-clusters">Choosing the number of clusters</h2>
+<section id="spectral-eigengap-guide" class="level3">
+<h3 class="anchored" data-anchor-id="spectral-eigengap-guide">Spectral eigengap guide</h3>
+<p><code>suggest_k()</code> examines the graph spectrum. It is a guide rather than a formal decision rule.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>k_guide <span class="ot">&lt;-</span> <span class="fu">suggest_k</span>(X, <span class="at">k_neighbors =</span> <span class="dv">15</span>, <span class="at">k_max =</span> <span class="dv">8</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>k_guide</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(k_guide)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="diagnostic-scan-over-k" class="level3">
+<h3 class="anchored" data-anchor-id="diagnostic-scan-over-k">Diagnostic scan over k</h3>
+<p><code>clusta_elbow()</code> fits a selected method over a range of cluster counts. It returns WCSS, BIC, average silhouette width, and the available optimality-gap value.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>k_scan <span class="ot">&lt;-</span> <span class="fu">clusta_elbow</span>(x, <span class="at">k_range =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>, <span class="at">method =</span> <span class="st">"wcss"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Look for agreement among the graph spectrum, WCSS elbow, BIC, silhouette, scientific knowledge, and cluster interpretability. A single index should not decide the analysis on its own.</p>
+</section>
+</section>
+<section id="sensitivity-and-bootstrap-stability" class="level2">
+<h2 class="anchored" data-anchor-id="sensitivity-and-bootstrap-stability">Sensitivity and bootstrap stability</h2>
+<section id="sensitivity-to-h-and-k_neighbors" class="level3">
+<h3 class="anchored" data-anchor-id="sensitivity-to-h-and-k_neighbors">Sensitivity to h and k_neighbors</h3>
+<p>The results should not depend on one unexamined tuning choice. <code>smpdp_sensitivity()</code> runs a grid of neighbourhood sizes and cluster counts. With known labels it reports ARI and NMI as well as silhouette. Without labels it uses silhouette for the printed summary.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>sensitivity <span class="ot">&lt;-</span> <span class="fu">smpdp_sensitivity</span>(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  X,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">truth =</span> moons<span class="sc">$</span>class,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">k_grid =</span> <span class="fu">c</span>(<span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">30</span>),</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">h_grid =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">mutual =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">12345</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>sensitivity</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sensitivity, <span class="at">metric =</span> <span class="st">"ARI"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="bootstrap-jaccard-stability" class="level3">
+<h3 class="anchored" data-anchor-id="bootstrap-jaccard-stability">Bootstrap Jaccard stability</h3>
+<p><code>cluster_stability()</code> resamples the observations, refits S-MPDP, and matches each original cluster to the closest bootstrap cluster by Jaccard overlap.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>stability <span class="ot">&lt;-</span> <span class="fu">cluster_stability</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  X,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">h =</span> <span class="dv">2</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">k_neighbors =</span> <span class="dv">15</span>,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">B =</span> <span class="dv">25</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">12345</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>stability</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(stability)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The function reports a score for each cluster and an overall mean. A high mean is reassuring, but it does not replace inspection of individual clusters. A single weak cluster can be hidden by a good overall average.</p>
+</section>
+</section>
+<section id="evaluate-a-clustering" class="level2">
+<h2 class="anchored" data-anchor-id="evaluate-a-clustering">Evaluate a clustering</h2>
+<p><code>cluster_metrics()</code> accepts the feature matrix, optional true labels, and predicted labels. It returns eight measures in a fixed order.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> smpdp_fit<span class="sc">$</span>cluster_results<span class="sc">$</span>cluster</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>scores <span class="ot">&lt;-</span> <span class="fu">cluster_metrics</span>(X, <span class="at">true_labels =</span> moons<span class="sc">$</span>class, <span class="at">pred_labels =</span> pred)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>scores</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
-<col style="width: 66%">
+<col style="width: 33%">
+<col style="width: 33%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Metric</th>
-<th>What it measures</th>
+<th>Measure</th>
+<th>Interpretation</th>
+<th>Preferred direction</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>ARI</td>
-<td>Agreement with ground-truth labels (adjusted for chance)</td>
+<td>Agreement with known classes, adjusted for chance</td>
+<td>Larger</td>
 </tr>
 <tr class="even">
 <td>NMI</td>
-<td>Normalised mutual information with ground-truth labels</td>
+<td>Shared information between classes and clusters</td>
+<td>Larger</td>
 </tr>
 <tr class="odd">
 <td>Silhouette</td>
-<td>Cohesion vs separation without ground truth</td>
+<td>Cohesion and separation in feature space</td>
+<td>Larger</td>
 </tr>
 <tr class="even">
 <td>Purity</td>
-<td>Majority-class proportion per cluster</td>
+<td>Majority-class share within clusters</td>
+<td>Larger</td>
 </tr>
 <tr class="odd">
-<td>Calinski-Harabasz</td>
-<td>Between-to-within variance ratio</td>
+<td>Accuracy</td>
+<td>Best one-to-one matching of clusters and classes</td>
+<td>Larger</td>
 </tr>
 <tr class="even">
-<td>Davies-Bouldin</td>
-<td>Average ratio of within-to-between spread</td>
+<td>CH</td>
+<td>Between-cluster to within-cluster dispersion</td>
+<td>Larger</td>
 </tr>
 <tr class="odd">
+<td>DB</td>
+<td>Within-cluster spread relative to separation</td>
+<td>Smaller</td>
+</tr>
+<tr class="even">
 <td>Dunn</td>
-<td>Minimum inter-cluster distance / maximum intra-cluster diameter</td>
+<td>Minimum separation relative to maximum cluster diameter</td>
+<td>Larger</td>
 </tr>
 </tbody>
 </table>
-<hr>
+<p>ARI, NMI, purity, and accuracy require known labels. Silhouette, CH, DB, and Dunn use the feature matrix. Silhouette needs the optional <code>cluster</code> package, and accuracy needs <code>clue</code>. Pairwise-distance measures can be expensive on large data, so you can request only the metrics needed.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cluster_metrics</span>(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  X,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">true_labels =</span> <span class="cn">NULL</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred_labels =</span> pred,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">c</span>(<span class="st">"Silhouette"</span>, <span class="st">"CH"</span>, <span class="st">"DB"</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>When labels are available, keep them out of the clustering feature matrix. They are for evaluation, not fitting.</p>
 </section>
-<section id="benchmarking" class="level2">
-<h2 class="anchored" data-anchor-id="benchmarking">Benchmarking</h2>
-<p><code>run_clustering_benchmarks()</code> compares S-MPDP against k-means, spectral clustering (from the <code>cluster</code> package), HDBSCAN, and agglomerative clustering across several datasets.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>bm <span class="ot">&lt;-</span> <span class="fu">run_clustering_benchmarks</span>(<span class="at">datasets =</span> <span class="st">"all"</span>, <span class="at">metrics =</span> <span class="st">"all"</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(bm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>friedman_ranks()</code> summarises the comparison with Friedman rank scores, one row per method, one column per metric.</p>
-<hr>
+<section id="compare-methods-fairly" class="level2">
+<h2 class="anchored" data-anchor-id="compare-methods-fairly">Compare methods fairly</h2>
+<p><code>run_clustering_benchmarks()</code> returns labels from a selected set of methods on the same feature matrix. Available choices are S-MPDP, K-Means, conventional spectral clustering, HDBSCAN, agglomerative clustering, and optional multi-level spectral clustering through <code>sClust</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> <span class="fu">run_clustering_benchmarks</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  X,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">L =</span> <span class="dv">2</span>,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">k_neb =</span> <span class="dv">15</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">mutual =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">12345</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">methods =</span> <span class="fu">c</span>(<span class="st">"S-MPDP"</span>, <span class="st">"K-Means"</span>, <span class="st">"Spectral"</span>, <span class="st">"Agglomerative"</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>comparison <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">vapply</span>(</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  predictions,</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">function</span>(z) <span class="fu">cluster_metrics</span>(X, moons<span class="sc">$</span>class, z),</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">numeric</span>(<span class="dv">8</span>)</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(comparison, <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>HDBSCAN requires <code>dbscan</code>. MSC requires <code>sClust</code>. Optional methods are skipped with a warning when their packages are not installed. HDBSCAN may return noise points, and MSC may return a different final number of groups from the requested maximum. Both facts should be considered when comparing results.</p>
+<p>For a study with several datasets, put one score matrix together with datasets in rows and methods in columns. <code>friedman_ranks()</code> ranks the methods within each dataset and reports the Friedman and Iman-Davenport tests.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>ari_by_dataset <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data_A =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">S-MPDP</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">0.86</span>, <span class="st">`</span><span class="at">K-Means</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">0.51</span>, <span class="at">Spectral =</span> <span class="fl">0.80</span>),</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data_B =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">S-MPDP</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">0.72</span>, <span class="st">`</span><span class="at">K-Means</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">0.68</span>, <span class="at">Spectral =</span> <span class="fl">0.70</span>),</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data_C =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">S-MPDP</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">0.91</span>, <span class="st">`</span><span class="at">K-Means</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">0.75</span>, <span class="at">Spectral =</span> <span class="fl">0.84</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>ranks <span class="ot">&lt;-</span> <span class="fu">friedman_ranks</span>(ari_by_dataset, <span class="at">higher_better =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>ranks</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ranks)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="bundled-datasets" class="level2">
-<h2 class="anchored" data-anchor-id="bundled-datasets">Bundled Datasets</h2>
-<p>Six real datasets are bundled with the package. Each has numeric feature columns and a <code>class</code> factor for validation.</p>
+<section id="data-included-with-clusta" class="level2">
+<h2 class="anchored" data-anchor-id="data-included-with-clusta">Data included with clusta</h2>
+<p>The package contains seven real benchmark datasets and three additional worked or simulated datasets.</p>
 <div class="dataset-grid">
-  <div class="dataset-card"><h4 class="anchored">glass</h4><p>214 glass fragments, 9 oxide predictors, 6 glass types.</p></div>
-  <div class="dataset-card"><h4 class="anchored">breast_cancer</h4><p>569 tumour measurements, 30 features, benign vs malignant.</p></div>
-  <div class="dataset-card"><h4 class="anchored">raisin</h4><p>900 raisin samples, 7 morphological features, 2 varieties.</p></div>
-  <div class="dataset-card"><h4 class="anchored">rice</h4><p>3810 rice samples, 7 shape features, 2 varieties.</p></div>
-  <div class="dataset-card"><h4 class="anchored">ceramic</h4><p>88 ceramic fragments, chemical composition, archaeological classification.</p></div>
-  <div class="dataset-card"><h4 class="anchored">smpdp_toy</h4><p>Small synthetic dataset for quick demos and testing.</p></div>
+  <div class="dataset-card"><h4 class="anchored">glass</h4><p>214 observations, 9 features, and 6 glass classes.</p></div>
+  <div class="dataset-card"><h4 class="anchored">breast_cancer</h4><p>569 observations, 30 diagnostic features, and 2 classes.</p></div>
+  <div class="dataset-card"><h4 class="anchored">raisin</h4><p>900 observations, 7 morphological features, and 2 classes.</p></div>
+  <div class="dataset-card"><h4 class="anchored">rice</h4><p>3,810 observations, 7 shape features, and 2 classes.</p></div>
+  <div class="dataset-card"><h4 class="anchored">ceramic</h4><p>88 observations, 17 chemical features, and 2 archaeological groups.</p></div>
+  <div class="dataset-card"><h4 class="anchored">image_segmentation</h4><p>2,310 observations, 19 image features, and 7 classes.</p></div>
+  <div class="dataset-card"><h4 class="anchored">waveform</h4><p>5,000 observations, 21 features, and 3 classes.</p></div>
+  <div class="dataset-card"><h4 class="anchored">v_shape</h4><p>A stored two-dimensional V-shaped benchmark.</p></div>
+  <div class="dataset-card"><h4 class="anchored">cassini</h4><p>A stored two-dimensional Cassini benchmark with 3 classes.</p></div>
+  <div class="dataset-card"><h4 class="anchored">smpdp_toy</h4><p>A small worked dataset for learning the S-MPDP workflow.</p></div>
 </div>
-<p>Six synthetic shape generators are also included for experimenting with non-convex structures.</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Two Moons</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Concentric Circles</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">Three Spirals</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" role="tab" aria-controls="tabset-1-4" aria-selected="false" href="">Smiley</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-5" role="tab" aria-controls="tabset-1-5" aria-selected="false" href="">V-Shape</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-6" role="tab" aria-controls="tabset-1-6" aria-selected="false" href="">Cassini</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">gen_two_moons</span>(<span class="at">n =</span> <span class="dv">500</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>,<span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">2</span>, <span class="at">method =</span> <span class="st">"spectral"</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Two interleaved crescent shapes. k-means fails; S-MPDP finds the correct boundary.</p>
-</div>
-<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">gen_concentric_circles</span>(<span class="at">n =</span> <span class="dv">2000</span>)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>,<span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">2</span>, <span class="at">method =</span> <span class="st">"spectral"</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Inner and outer rings. A textbook failure case for any linear or convex method.</p>
-</div>
-<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">gen_three_spirals</span>(<span class="at">n =</span> <span class="dv">1200</span>, <span class="at">cycles =</span> <span class="fl">1.4</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>,<span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">3</span>, <span class="at">method =</span> <span class="st">"spectral"</span>)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Three interleaved arms. Tests the graph unfolding under high curvature.</p>
-</div>
-<div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">gen_smiley</span>(<span class="at">n =</span> <span class="dv">400</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>,<span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">3</span>, <span class="at">method =</span> <span class="st">"spectral"</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A smile arc and two eyes. Three clusters with very different densities.</p>
-</div>
-<div id="tabset-1-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-5-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">gen_v_shape</span>(<span class="at">n =</span> <span class="dv">400</span>)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>,<span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">2</span>, <span class="at">method =</span> <span class="st">"spectral"</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Two arms of a V. Non-convex but less extreme than spirals.</p>
-</div>
-<div id="tabset-1-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-6-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">gen_cassini</span>(<span class="at">n =</span> <span class="dv">2000</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">clusta</span>(d[, <span class="fu">c</span>(<span class="st">"x"</span>,<span class="st">"y"</span>)], <span class="at">k =</span> <span class="dv">3</span>, <span class="at">method =</span> <span class="st">"spectral"</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Two outer banana-shaped bands and a central disc. Uses the mlbench generator when installed.</p>
-</div>
-</div>
-</div>
-<hr>
+<p>A typical labelled dataset has numeric feature columns and a separate <code>class</code> column.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ceramic)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>X_ceramic <span class="ot">&lt;-</span> ceramic[, <span class="fu">setdiff</span>(<span class="fu">names</span>(ceramic), <span class="st">"class"</span>)]</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>y_ceramic <span class="ot">&lt;-</span> ceramic<span class="sc">$</span>class</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>ceramic_fit <span class="ot">&lt;-</span> <span class="fu">spectral_mpdp</span>(X_ceramic, <span class="at">h =</span> <span class="dv">2</span>, <span class="at">k_neighbors =</span> <span class="dv">41</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cluster_metrics</span>(X_ceramic, y_ceramic, ceramic_fit<span class="sc">$</span>cluster_results<span class="sc">$</span>cluster)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Six generators make it easy to explore non-convex shapes and to test code at different sample sizes.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>two_moons   <span class="ot">&lt;-</span> <span class="fu">gen_two_moons</span>(<span class="at">n =</span> <span class="dv">500</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>v_data      <span class="ot">&lt;-</span> <span class="fu">gen_v_shape</span>(<span class="at">n =</span> <span class="dv">400</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>circles     <span class="ot">&lt;-</span> <span class="fu">gen_concentric_circles</span>(<span class="at">n =</span> <span class="dv">1500</span>)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>smiley      <span class="ot">&lt;-</span> <span class="fu">gen_smiley</span>(<span class="at">n =</span> <span class="dv">400</span>)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>spirals     <span class="ot">&lt;-</span> <span class="fu">gen_three_spirals</span>(<span class="at">n =</span> <span class="dv">900</span>, <span class="at">noise =</span> <span class="fl">0.02</span>, <span class="at">cycles =</span> <span class="fl">1.4</span>)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>cassini_sim <span class="ot">&lt;-</span> <span class="fu">gen_cassini</span>(<span class="at">n =</span> <span class="dv">2000</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Each generator returns <code>x</code>, <code>y</code>, and <code>class</code>. The random seed is set inside the generator so that the same call is reproducible.</p>
 </section>
-<section id="visualisation" class="level2">
-<h2 class="anchored" data-anchor-id="visualisation">Visualisation</h2>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">Cluster Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">Signal Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false" href="">Confidence Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-4" role="tab" aria-controls="tabset-2-4" aria-selected="false" href="">Eigengap Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-5" role="tab" aria-controls="tabset-2-5" aria-selected="false" href="">Similarity Matrix</a></li></ul>
-<div class="tab-content">
-<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl)                  <span class="co"># base graphics</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_clusta</span>(cl)           <span class="co"># ggplot2 version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Scatter plot coloured by cluster assignment. For one-variable results, shows the density with boundaries marked.</p>
-</div>
-<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl, <span class="at">type =</span> <span class="st">"signal"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The 1-D spectral signal used by S-MPDP, with fitted density and cluster boundaries overlaid.</p>
-</div>
-<div id="tabset-2-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-3-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl, <span class="at">type =</span> <span class="st">"confidence"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Per-observation assignment confidence, based on distance to the nearest boundary in signal space.</p>
-</div>
-<div id="tabset-2-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-4-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>sk <span class="ot">&lt;-</span> <span class="fu">suggest_k</span>(X)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sk)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Laplacian eigenvalue spectrum with the largest gap highlighted.</p>
-</div>
-<div id="tabset-2-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-5-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cl, <span class="at">type =</span> <span class="st">"similarity"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The kNN similarity matrix, reordered by cluster. Block structure confirms cluster quality.</p>
-</div>
-</div>
-</div>
-<hr>
-</section>
-<section id="s3-methods" class="level2">
-<h2 class="anchored" data-anchor-id="s3-methods">S3 Methods</h2>
+<section id="work-with-the-returned-objects" class="level2">
+<h2 class="anchored" data-anchor-id="work-with-the-returned-objects">Work with the returned objects</h2>
+<p>The <code>clusta</code> class follows familiar R conventions.</p>
 <div class="fn-card">
-<code>print(cl)</code> &nbsp; cluster sizes, centres, WCSS, BIC, silhouette, optimality gap<br>
-<code>summary(cl)</code> &nbsp; per-cluster table with size, proportion, within-SS, silhouette width<br>
-<code>plot(cl)</code> &nbsp; cluster plot (base graphics)<br>
-<code>autoplot(cl)</code> &nbsp; cluster plot (ggplot2)<br>
-<code>fitted(cl)</code> &nbsp; centre coordinates for each observation<br>
-<code>predict(cl, newdata)</code> &nbsp; assign new points to the nearest cluster centre<br>
-<code>fviz_clusta(cl)</code> &nbsp; ggplot2 visualisation with confidence shading
+<code>print(fit)</code> &nbsp; overall result, centres, fit measures, and optimality information<br>
+<code>summary(fit)</code> &nbsp; one row per cluster with size, proportion, WCSS, silhouette, and centres<br>
+<code>plot(fit)</code> &nbsp; cluster or silhouette figure in base R<br>
+<code>fitted(fit)</code> &nbsp; fitted centre for every observation<br>
+<code>predict(fit, newdata)</code> &nbsp; new labels, using the exact separating line for exact2d and nearest centres otherwise<br>
+<code>fviz_clusta(fit)</code> &nbsp; a ggplot2 cluster or silhouette figure
 </div>
-<section id="optimality-gap" class="level3">
-<h3 class="anchored" data-anchor-id="optimality-gap">Optimality Gap</h3>
-<p>For the exact one-dimensional methods and <code>exact2d</code>, clusta certifies how close the solution is to the global optimum.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>cl<span class="sc">$</span>gap_pct        <span class="co"># certified upper bound on distance from global (0 = provably global)</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>cl<span class="sc">$</span>lower_bound    <span class="co"># Cauchy-Schwarz lower bound on WCSS</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A gap of 0% means the solution is certifiably the best possible. For spectral and parametric methods the objective is not WCSS, so the gap is not reported.</p>
-<hr>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(fit_iris)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>cluster</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>centers</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>size</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>withinss</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>tot.withinss</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>bic</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>avg.silwidth</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>direction</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>fit_iris<span class="sc">$</span>var_explained</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Direct access is useful for reports and tables, but <code>print()</code> and <code>summary()</code> are the safer starting points because they explain the method-specific result.</p>
+</section>
+<section id="explore-the-package-in-the-shiny-app" class="level2">
+<h2 class="anchored" data-anchor-id="explore-the-package-in-the-shiny-app">Explore the package in the Shiny app</h2>
+<p>The app is included inside the installed package. Install its optional interface packages once, then launch it with:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"shiny"</span>, <span class="st">"bslib"</span>, <span class="st">"ggplot2"</span>, <span class="st">"DT"</span>))</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>shiny<span class="sc">::</span><span class="fu">runApp</span>(<span class="fu">system.file</span>(<span class="st">"app"</span>, <span class="at">package =</span> <span class="st">"clusta"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The app is designed as an analysis path rather than a gallery. A useful first run is:</p>
+<ol type="1">
+<li>Choose a built-in dataset, such as Ceramic, Two moons, or Waveform.</li>
+<li>Check the supplied starting values for the number of clusters and neighbourhood size.</li>
+<li>Choose the mutual or union graph rule.</li>
+<li>Decide whether to compare baseline methods.</li>
+<li>Click <strong>Run clustering</strong>.</li>
+<li>Read the overview and graph-health message before moving to the figures.</li>
+<li>Inspect the cluster map, spectral signal, confidence, eigengap, similarity matrix, and cluster profiles.</li>
+<li>Use the stability, bootstrap, PCA, and dynamic-programming panels when they answer your analysis question.</li>
+<li>Export the assignments, metrics, figures, or generated R code.</li>
+</ol>
+<p>The benchmark comparison uses the same <strong>Run clustering</strong> button. There is no separate benchmark button. The selected baseline methods and metrics are applied when the main analysis runs.</p>
+<section id="built-in-app-examples" class="level3">
+<h3 class="anchored" data-anchor-id="built-in-app-examples">Built-in app examples</h3>
+<p>The app includes Iris, all seven real package datasets, and six simulated shapes. Each built-in choice supplies a tested starting value for <code>h</code> and <code>k_neighbors</code>. For example, Waveform starts with three clusters and <code>k_neighbors = 50</code>.</p>
+<p>For large built-in datasets, baseline comparisons are turned off automatically because dense spectral methods and pairwise-distance metrics can take time and memory. You can turn them back on when the comparison is needed.</p>
+</section>
+<section id="upload-your-own-csv" class="level3">
+<h3 class="anchored" data-anchor-id="upload-your-own-csv">Upload your own CSV</h3>
+<p>When uploading a CSV file:</p>
+<ol type="1">
+<li>Select the numeric feature columns.</li>
+<li>If known labels are present, select the label column separately.</li>
+<li>Decide whether to standardise the features.</li>
+<li>Check that <code>k_neighbors</code> is smaller than the number of observations.</li>
+<li>Run the analysis and read any graph-connectivity warning.</li>
+</ol>
+<p>The selected label column is removed from the clustering features, even when the labels are numeric. This prevents the true answer from leaking into the fit. Constant features remain available to the clustering method, but the app omits them from standardised PCA calculations because they have zero variance.</p>
+<p>The <strong>R code</strong> tab is especially useful. It writes a reproducible script that reflects the current controls, so an app analysis can be rerun at the console and shared with collaborators.</p>
 </section>
 </section>
-<section id="shiny-app" class="level2">
-<h2 class="anchored" data-anchor-id="shiny-app">Shiny App</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"shiny"</span>, <span class="st">"bslib"</span>, <span class="st">"DT"</span>, <span class="st">"ggplot2"</span>))   <span class="co"># once</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">clustaApp</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The bundled app covers the full workflow: upload data or pick a built-in dataset, choose the method and k, view cluster plots, signal plots, eigengap, stability results, and a benchmark comparison. No code needed.</p>
-<hr>
+<section id="a-careful-analysis-workflow" class="level2">
+<h2 class="anchored" data-anchor-id="a-careful-analysis-workflow">A careful analysis workflow</h2>
+<p>A reliable clustering analysis needs more than a single fitted object. The following sequence works well for many applications:</p>
+<ol type="1">
+<li>Clean the feature matrix and deal with missing values before fitting.</li>
+<li>Keep known labels separate from the features.</li>
+<li>Standardise when variables are measured on very different scales, unless the original scale has a scientific meaning that should be preserved.</li>
+<li>Choose a method that matches the structure of the problem.</li>
+<li>For S-MPDP, inspect graph components and isolated points.</li>
+<li>Study more than one value of <code>h</code> and <code>k_neighbors</code>.</li>
+<li>Examine the cluster map, signal, confidence, and profiles together.</li>
+<li>Report both internal and external metrics when labels exist.</li>
+<li>Check bootstrap stability.</li>
+<li>Compare with credible baseline methods.</li>
+<li>Save the settings, seed, package version, and exported R code.</li>
+</ol>
+<p>This does not guarantee that every cluster is scientifically meaningful. It makes the reasoning visible and the result reproducible.</p>
 </section>
-<section id="who-is-clusta-for" class="level2">
-<h2 class="anchored" data-anchor-id="who-is-clusta-for">Who Is clusta For?</h2>
-<div class="use-grid">
-  <div class="use-card"><h4 class="anchored">🔬 Applied Researchers</h4><p>Any domain with non-convex or ring-like cluster structures. The spectral method works where k-means does not.</p></div>
-  <div class="use-card"><h4 class="anchored">📊 Survey and Social Science</h4><p>The estvar method with the Neyman objective clusters in a way that directly minimises survey estimation variance.</p></div>
-  <div class="use-card"><h4 class="anchored">🌍 Spatial Analysis</h4><p>The graph method respects spatial adjacency constraints, so neighbouring units stay in the same cluster.</p></div>
-  <div class="use-card"><h4 class="anchored">📈 Time Series</h4><p>The sequence method segments ordered data into contiguous groups along a known ordering.</p></div>
-  <div class="use-card"><h4 class="anchored">🎓 Teaching</h4><p>The Shiny app and shape generators make it easy to show students why k-means fails on non-convex data.</p></div>
-</div>
-<hr>
+<section id="what-the-package-does-not-claim" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-package-does-not-claim">What the package does not claim</h2>
+<p>clusta gives exact solutions in several clearly defined settings, but it does not turn every multivariate clustering problem into a global optimisation result.</p>
+<ul>
+<li><code>wcss</code> is globally optimal for a contiguous partition of one variable.</li>
+<li><code>projection</code> and multivariate <code>estvar</code> are exact on the chosen one-dimensional score.</li>
+<li><code>parametric</code> is optimal on its fitted-model grid for the chosen Stage 2 objective.</li>
+<li><code>exact2d</code> certifies the two-cluster WCSS optimum for exactly two variables.</li>
+<li><code>sweep</code> is global for two clusters and otherwise searches partitions separated by parallel lines.</li>
+<li><code>sequence</code> is exact along the supplied order.</li>
+<li><code>graph</code> is a minimum-spanning-tree heuristic built from Euclidean feature distances. Version 1.0-1 does not use a custom spatial adjacency matrix.</li>
+<li>S-MPDP is exact for Stage 2 boundary placement on the fitted spectral signal. It does not claim the global optimum over all partitions of the original multivariate space.</li>
+</ul>
+<p>These limits tell the reader exactly what was optimised and help another researcher reproduce the analysis.</p>
 </section>
 <section id="quick-reference" class="level2">
-<h2 class="anchored" data-anchor-id="quick-reference">Quick Reference</h2>
+<h2 class="anchored" data-anchor-id="quick-reference">Quick reference</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 52%">
-<col style="width: 47%">
+<col style="width: 50%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
+<th>Task</th>
 <th>Function</th>
-<th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>clusta(data, k)</code></td>
-<td>Cluster using the selected method</td>
+<td>Use the common nine-method interface</td>
+<td><code>clusta(data, k, method)</code></td>
 </tr>
 <tr class="even">
-<td><code>spectral_mpdp(data, k)</code></td>
-<td>S-MPDP with full control over parameters</td>
+<td>Run S-MPDP directly</td>
+<td><code>spectral_mpdp(data, h, k_neighbors)</code></td>
 </tr>
 <tr class="odd">
-<td><code>mpdp(x, k)</code></td>
-<td>Distribution-aware DP on one variable</td>
+<td>Run distribution-aware DP on one variable</td>
+<td><code>mpdp(data, h)</code></td>
 </tr>
 <tr class="even">
-<td><code>suggest_k(data)</code></td>
-<td>Eigengap estimate of the number of clusters</td>
-</tr>
-<tr class="odd">
-<td><code>clusta_elbow(data)</code></td>
-<td>WCSS / BIC / silhouette scan over k</td>
-</tr>
-<tr class="even">
-<td><code>cluster_stability(data, h, B)</code></td>
-<td>Bootstrap Jaccard stability</td>
-</tr>
-<tr class="odd">
-<td><code>smpdp_sensitivity(data)</code></td>
-<td>Sensitivity over k and k_neighbors</td>
-</tr>
-<tr class="even">
-<td><code>cluster_metrics(cl, true_labels)</code></td>
-<td>ARI, NMI, silhouette, purity, and more</td>
-</tr>
-<tr class="odd">
-<td><code>run_clustering_benchmarks()</code></td>
-<td>Compare S-MPDP vs k-means / spectral / HDBSCAN</td>
-</tr>
-<tr class="even">
-<td><code>friedman_ranks(bm)</code></td>
-<td>Friedman rank summary across methods</td>
-</tr>
-<tr class="odd">
+<td>Compare clusta with k-means</td>
 <td><code>clusta_compare(data, k)</code></td>
-<td>Side-by-side comparison with k-means</td>
-</tr>
-<tr class="even">
-<td><code>fviz_clusta(cl)</code></td>
-<td>ggplot2 cluster figure</td>
 </tr>
 <tr class="odd">
-<td><code>clustaApp()</code></td>
-<td>Launch interactive Shiny app</td>
+<td>Scan candidate cluster counts</td>
+<td><code>clusta_elbow(data, k_range)</code></td>
+</tr>
+<tr class="even">
+<td>Obtain an eigengap guide</td>
+<td><code>suggest_k(data, k_neighbors, k_max)</code></td>
+</tr>
+<tr class="odd">
+<td>Check bootstrap stability</td>
+<td><code>cluster_stability(data, h, k_neighbors, B)</code></td>
+</tr>
+<tr class="even">
+<td>Study neighbourhood and cluster-count sensitivity</td>
+<td><code>smpdp_sensitivity(data, truth, k_grid, h_grid)</code></td>
+</tr>
+<tr class="odd">
+<td>Compute eight validation measures</td>
+<td><code>cluster_metrics(X, true_labels, pred_labels)</code></td>
+</tr>
+<tr class="even">
+<td>Run selected comparison methods</td>
+<td><code>run_clustering_benchmarks(X, L, k_neb)</code></td>
+</tr>
+<tr class="odd">
+<td>Compare method ranks across datasets</td>
+<td><code>friedman_ranks(scores)</code></td>
+</tr>
+<tr class="even">
+<td>Draw a ggplot2 figure for a clusta object</td>
+<td><code>fviz_clusta(object)</code></td>
+</tr>
+<tr class="odd">
+<td>Launch the app</td>
+<td><code>shiny::runApp(system.file("app", package = "clusta"))</code></td>
 </tr>
 </tbody>
 </table>
-<hr>
 </section>
-<section id="citation" class="level2">
-<h2 class="anchored" data-anchor-id="citation">Citation</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">citation</span>(<span class="st">"clusta"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="citation-and-authors" class="level2">
+<h2 class="anchored" data-anchor-id="citation-and-authors">Citation and authors</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">citation</span>(<span class="st">"clusta"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Until the CRAN page and companion papers are available, cite the software as:</p>
 <blockquote class="blockquote">
-<p>Reddy, K. G., Bulivou, G., &amp; Khan, M. G. M. (2026). <em>clusta: Spectral, Distribution-Aware and Dynamic-Programming Clustering</em>. R package version 1.0-1. <a href="https://cran.r-project.org/package=clusta" class="uri">https://cran.r-project.org/package=clusta</a></p>
+<p>Reddy, K. G., Bulivou, G. and Khan, M. G. M. (2026). <em>clusta: Spectral, Distribution-Aware and Dynamic-Programming Clustering</em>. R package version 1.0-1.</p>
 </blockquote>
-<hr>
+<p>The package is written by Karuna G. Reddy, Gabiriele Bulivou, and M. G. M. Khan. The S-MPDP methods paper and a separate software paper are in preparation.</p>
 <div class="callout callout-style-simple callout-note">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p>clusta is on CRAN: <a href="https://cran.r-project.org/package=clusta" class="uri">https://cran.r-project.org/package=clusta</a> A companion paper describing the S-MPDP method and benchmarks is in preparation. We would love to hear how you are using it.</p>
+<p>The permanent CRAN link will be added after the package is accepted. The GitHub repository, vignettes, help pages, and Shiny app already contain the material needed to begin using and testing version 1.0-1.</p>
 </div>
 </div>
 </div>
