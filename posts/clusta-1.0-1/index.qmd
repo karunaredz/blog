@@ -1,0 +1,610 @@
+---
+title: "clusta 1.0-1"
+subtitle: "From ordered data to non-convex clusters"
+description: "A practical guide to dynamic-programming clustering, S-MPDP, diagnostics, benchmark data, figures, and the Shiny app"
+author: "Karuna G. Reddy, Gabiriele Bulivou and M. G. M. Khan"
+date: "2026-10-30"
+categories: [R, clusta, clustering, dynamic programming]
+image: clusta-logo.png
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "On this page"
+    code-copy: true
+    highlight-style: github
+execute:
+  eval: false
+  echo: true
+---
+
+```{=html}
+<style>
+.pkg-hero { display:flex; align-items:center; gap:28px; padding:24px 28px; background:linear-gradient(135deg,#0A1628 0%,#0D2B6B 60%,#1a4a9e 100%); border-radius:10px; margin-bottom:28px; color:white; }
+.pkg-hero img { width:110px; height:auto; flex-shrink:0; border-radius:6px; }
+.pkg-hero h1 { margin:0 0 4px 0; font-size:2.4rem; font-weight:800; color:white; letter-spacing:-0.5px; }
+.pkg-hero .subtitle { font-size:1.05rem; color:#90CAF9; margin:0 0 10px 0; }
+.pkg-hero .badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.pkg-hero .badges img { height:22px; vertical-align:middle; border-radius:0; width:auto; }
+.pkg-hero .install-box { background:rgba(0,0,0,0.4); border-radius:6px; padding:10px 14px; font-family:monospace; font-size:0.9rem; color:#80DEEA; margin-top:10px; border-left:3px solid #E69F00; }
+.method-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(225px,1fr)); gap:12px; margin:16px 0; }
+.method-card { border-radius:8px; padding:14px 16px; background:white; border:1px solid #C5CAE9; }
+.method-card h4 { margin:0 0 5px 0; font-size:0.94rem; color:#0D2B6B; }
+.method-card p { margin:0; font-size:0.83rem; color:#444; line-height:1.48; }
+.method-card .tag { font-size:0.72rem; font-weight:700; background:#E8EAF6; color:#3949AB; border-radius:4px; padding:1px 6px; margin-bottom:5px; display:inline-block; }
+.dataset-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; margin:14px 0; }
+.dataset-card { border-radius:6px; padding:10px 13px; background:#f5f7ff; border:1px solid #C5CAE9; }
+.dataset-card h4 { margin:0 0 3px 0; font-size:0.88rem; color:#1a3a6e; }
+.dataset-card p { margin:0; font-size:0.79rem; color:#555; line-height:1.42; }
+.step-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin:16px 0; }
+.step-card { border-radius:8px; padding:14px; background:#f8fbff; border-top:4px solid #1565C0; }
+.step-card h4 { margin:0 0 6px 0; font-size:0.94rem; color:#0D2B6B; }
+.step-card p { margin:0; font-size:0.82rem; color:#444; line-height:1.48; }
+.fn-card { border-left:4px solid #0D2B6B; padding:12px 16px; background:#f0f4ff; border-radius:0 6px 6px 0; margin:12px 0; line-height:1.9; }
+.fn-card code { background:#BBDEFB; padding:1px 5px; border-radius:3px; font-size:0.88em; }
+</style>
+
+<div class="pkg-hero">
+  <img src="clusta-logo.png" alt="clusta logo"/>
+  <div>
+    <h1>clusta 1.0-1</h1>
+    <div class="subtitle">Spectral, Distribution-Aware and Dynamic-Programming Clustering</div>
+    <div class="badges">
+      <img src="https://img.shields.io/badge/version-1.0--1-0D2B6B.svg" alt="Version 1.0-1"/>
+      <img src="https://img.shields.io/badge/license-GPL%20%28%3E%3D%203%29-blue.svg" alt="GPL version 3 or later"/>
+      <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1 or later"/>
+    </div>
+    <div class="install-box">remotes::install_github("karunaredz/clusta")</div>
+  </div>
+</div>
+```
+
+Clustering often begins with a simple question: which observations belong together? The answer becomes less simple when groups form rings, crescents, spirals, or ordered segments. A single method is rarely suitable for all of these settings.
+
+We developed **clusta** to bring several related clustering tools into one R package. The common idea is to use dynamic programming when observations can be represented on an ordered axis. On that axis, the package can search all valid contiguous partitions and find the best boundary placement for the chosen objective. For multivariate data, clusta provides several ways to construct or use such an ordering.
+
+The package's main multivariate method is **S-MPDP**, short for Spectral Mathematical Programming Dynamic Programming clustering. S-MPDP uses a neighbourhood graph to unfold complex cluster shapes into a one-dimensional signal. It then fits a distribution to that signal and places cluster boundaries by dynamic programming.
+
+This article gives a practical tour of version 1.0-1. It begins with the simplest one-variable problem, moves to non-convex multivariate data, and ends with diagnostics, benchmarking, data, figures, and the Shiny app.
+
+::: {.callout-note}
+## Publication status
+The package is available on GitHub while its CRAN submission is being completed. Install it from GitHub for now, as shown below. The CRAN installation command and permanent CRAN link will be added here after acceptance.
+:::
+
+## Install and load the package
+
+Install the development version from GitHub:
+
+```r
+# install.packages("remotes")
+remotes::install_github("karunaredz/clusta")
+library(clusta)
+```
+
+The core package uses `fitdistrplus`. Other packages are suggested rather than required. They add the Shiny app, `ggplot2` figures, some validation measures, additional benchmark methods, and the optional FitVerse distribution engine.
+
+```r
+# Optional tools used in later sections
+install.packages(c(
+  "shiny", "bslib", "ggplot2", "DT", "cluster", "clue",
+  "mclust", "dbscan", "mlbench"
+))
+```
+
+You can see the package guides at any time:
+
+```r
+vignette("clusta", package = "clusta")
+vignette("smpdp", package = "clusta")
+help(package = "clusta")
+```
+
+## Start with one variable
+
+Suppose the data contain three groups along a single measured variable. Here the natural clusters are contiguous intervals. The default `wcss` method finds the partition that minimises the total within-cluster sum of squares.
+
+```r
+set.seed(123)
+x <- c(
+  rnorm(60, mean = 0,  sd = 0.8),
+  rnorm(60, mean = 6,  sd = 1.0),
+  rnorm(60, mean = 13, sd = 1.2)
+)
+
+fit_1d <- clusta(x, k = 3)
+fit_1d
+summary(fit_1d)
+plot(fit_1d)
+```
+
+For one variable, the dynamic program searches the complete set of contiguous three-group partitions. The result is therefore the global minimum of the stated WCSS problem. The printed object reports cluster sizes, centres, WCSS, BIC, silhouette width, and the optimality statement.
+
+```r
+head(fit_1d$cluster)
+fit_1d$boundaries
+fit_1d$tot.withinss
+fit_1d$gap_pct
+```
+
+`gap_pct = 0` certifies a global optimum for the WCSS problem. A nonzero value is a certified upper bound based on the package's lower bound. It can be conservative.
+
+## One interface, nine methods
+
+The `clusta()` function gives access to nine methods. If `method` is omitted, the package uses `wcss` for one variable and `projection` for multivariate data.
+
+```{=html}
+<div class="method-grid">
+  <div class="method-card"><span class="tag">ONE VARIABLE</span><h4>wcss</h4><p>Finds the globally optimal contiguous partition under within-cluster sum of squares.</p></div>
+  <div class="method-card"><span class="tag">ONE OR MORE VARIABLES</span><h4>projection</h4><p>Uses PC1, a supplied direction, or a supplied score. It then solves the one-dimensional WCSS problem exactly on that score.</p></div>
+  <div class="method-card"><span class="tag">ESTIMATION VARIANCE</span><h4>estvar</h4><p>Uses an exact dynamic program on one variable or a projection score. Objectives include Neyman, Gaussian, and WCSS costs.</p></div>
+  <div class="method-card"><span class="tag">DISTRIBUTION AWARE</span><h4>parametric</h4><p>Fits a distribution by AIC and places model-based boundaries by dynamic programming on a numerical grid.</p></div>
+  <div class="method-card"><span class="tag">NON-CONVEX DATA</span><h4>spectral</h4><p>Runs S-MPDP. A spectral graph representation is compressed to one signal, then partitioned by the distribution-aware dynamic program.</p></div>
+  <div class="method-card"><span class="tag">TWO VARIABLES</span><h4>exact2d</h4><p>For exactly two variables and k = 2. It enumerates separating directions and certifies the full-space WCSS optimum.</p></div>
+  <div class="method-card"><span class="tag">TWO VARIABLES</span><h4>sweep</h4><p>Searches separating directions for any k. It is global for k = 2 and finds the best parallel-line partition for k greater than 2.</p></div>
+  <div class="method-card"><span class="tag">ORDERED ROWS</span><h4>sequence</h4><p>Finds the exact multivariate segmentation along a known order, such as time, distance, or a transect.</p></div>
+  <div class="method-card"><span class="tag">GRAPH HEURISTIC</span><h4>graph</h4><p>Builds a Euclidean minimum spanning tree and removes edges greedily to reduce WCSS. It is a useful heuristic, not an exact graph partition.</p></div>
+</div>
+```
+
+These methods do not make the same optimality claim. For example, `projection` is exact after the projection has been chosen, not in the original multivariate space. S-MPDP is exact for its Stage 2 boundary problem on the fitted one-dimensional signal, not for every possible partition of the original data. Keeping this distinction clear is important when reporting results.
+
+### Projection for several variables
+
+```r
+fit_iris <- clusta(
+  iris[, 1:4],
+  k = 3,
+  method = "projection",
+  scale = TRUE
+)
+
+fit_iris
+plot(fit_iris)
+```
+
+You may supply your own direction or score when the scientific problem already provides a meaningful order.
+
+```r
+fit_direction <- clusta(
+  iris[, 1:4],
+  k = 3,
+  method = "projection",
+  direction = c(1, 0, 0, 0)
+)
+```
+
+### Distribution-aware boundaries
+
+The `parametric` method first fits a distribution to the variable or projection score. The default engine compares Normal, Log-Normal, Gamma, Weibull, and Exponential families when their supports are suitable. It selects by AIC and places boundaries by minimising the fitted model's total $W_hS_h$ cost on a numerical grid.
+
+```r
+set.seed(321)
+y <- c(rgamma(120, shape = 2, rate = 1),
+       rgamma(80, shape = 7, rate = 0.8))
+
+fit_parametric <- clusta(y, k = 3, method = "parametric")
+fit_parametric$distr
+fit_parametric$fit_params
+plot(fit_parametric)
+```
+
+If the optional FitVerse package is installed, `fit_engine = "fitverse"` searches its larger family collection. `fit_engine = "best"` tries both engines and keeps the boundary set with the lower empirical $W_hS_h$ value.
+
+```r
+fit_wide <- clusta(
+  y,
+  k = 3,
+  method = "parametric",
+  fit_engine = "fitverse",
+  fit_dists = "all"
+)
+```
+
+## S-MPDP for non-convex clusters
+
+K-means is useful when groups are compact and roughly spherical. It is poorly matched to two moons, concentric rings, or intertwined spirals because those groups cannot be separated well by nearest-centre regions. S-MPDP takes a different route.
+
+```{=html}
+<div class="step-grid">
+  <div class="step-card"><h4>1. Build a local graph</h4><p>Construct a locally scaled k-nearest-neighbour graph. The default mutual rule keeps an edge only when each point selects the other.</p></div>
+  <div class="step-card"><h4>2. Unfold the data</h4><p>Use the normalised Laplacian, its leading eigenvectors, row normalisation, and PCA to produce one ordered signal.</p></div>
+  <div class="step-card"><h4>3. Fit the signal</h4><p>Compare candidate distributions by AIC and retain the best supported model for the spectral signal.</p></div>
+  <div class="step-card"><h4>4. Place boundaries</h4><p>Use dynamic programming to select the Stage 2 boundaries and map the resulting labels back to the original observations.</p></div>
+</div>
+```
+
+### A two-moons example
+
+```r
+moons <- gen_two_moons(n = 500)
+X <- moons[, c("x", "y")]
+
+smpdp_fit <- spectral_mpdp(
+  X,
+  h = 2,
+  k_neighbors = 15,
+  mutual = TRUE
+)
+
+smpdp_fit
+summary(smpdp_fit)
+```
+
+The dedicated `spectral_mpdp()` interface returns an object of class `smpdp`. Its main table contains the original features, the spectral score, the assigned cluster, and an assignment-confidence value.
+
+```r
+head(smpdp_fit$cluster_results)
+table(smpdp_fit$cluster_results$cluster)
+```
+
+The same method is also available through the common interface:
+
+```r
+fit_common <- clusta(
+  X,
+  k = 2,
+  method = "spectral",
+  k_neighbors = 15
+)
+```
+
+Use `spectral_mpdp()` when you want all six S-MPDP figures and the Stage 1 and Stage 2 details. Use `clusta(..., method = "spectral")` when you want the common `clusta` object and its S3 methods.
+
+### Read the graph checks
+
+`k_neighbors` is the main S-MPDP tuning setting. Small values keep the graph local, but may leave isolated points or too many connected components. Large values connect more of the data, but can blur local geometry.
+
+Every S-MPDP result reports the number of graph components and isolated observations. Treat a connectivity warning as part of the analysis. It usually means that `k_neighbors` should be increased, or that the union graph should be examined with `mutual = FALSE`.
+
+```r
+union_fit <- spectral_mpdp(X, h = 2, k_neighbors = 15, mutual = FALSE)
+```
+
+The mutual and union rules answer slightly different graph questions. It is better to report which rule was used than to switch between them without explanation.
+
+## Six views of an S-MPDP result
+
+The package provides six matching base R and `ggplot2` views.
+
+```r
+plot(smpdp_fit, "clusters")
+plot(smpdp_fit, "signal")
+plot(smpdp_fit, "confidence")
+plot(smpdp_fit, "eigengap")
+plot(smpdp_fit, "similarity")
+plot(smpdp_fit, "profile")
+```
+
+The cluster map uses the two original variables when there are exactly two. For higher-dimensional data, it displays the first two principal components. The signal plot shows where Stage 2 placed the boundaries. The confidence plot highlights observations close to a boundary. The similarity plot helps you inspect graph block structure, while the profile plot compares standardised feature means across clusters.
+
+```r
+ggplot2::autoplot(smpdp_fit, "clusters")
+ggplot2::autoplot(smpdp_fit, "signal")
+ggplot2::autoplot(smpdp_fit, "profile")
+```
+
+For an ordinary `clusta` object, use `plot()` for base graphics or `fviz_clusta()` for a `ggplot2` figure.
+
+```r
+plot(fit_iris, "clusters")
+plot(fit_iris, "silhouette")
+fviz_clusta(fit_iris, type = "clusters")
+```
+
+## Choosing the number of clusters
+
+### Spectral eigengap guide
+
+`suggest_k()` examines the graph spectrum. It is a guide rather than a formal decision rule.
+
+```r
+k_guide <- suggest_k(X, k_neighbors = 15, k_max = 8)
+k_guide
+plot(k_guide)
+```
+
+### Diagnostic scan over k
+
+`clusta_elbow()` fits a selected method over a range of cluster counts. It returns WCSS, BIC, average silhouette width, and the available optimality-gap value.
+
+```r
+k_scan <- clusta_elbow(x, k_range = 1:8, method = "wcss")
+```
+
+Look for agreement among the graph spectrum, WCSS elbow, BIC, silhouette, scientific knowledge, and cluster interpretability. A single index should not decide the analysis on its own.
+
+## Sensitivity and bootstrap stability
+
+### Sensitivity to h and k_neighbors
+
+The results should not depend on one unexamined tuning choice. `smpdp_sensitivity()` runs a grid of neighbourhood sizes and cluster counts. With known labels it reports ARI and NMI as well as silhouette. Without labels it uses silhouette for the printed summary.
+
+```r
+sensitivity <- smpdp_sensitivity(
+  X,
+  truth = moons$class,
+  k_grid = c(8, 10, 15, 20, 30),
+  h_grid = 2:4,
+  mutual = TRUE,
+  seed = 12345
+)
+
+sensitivity
+plot(sensitivity, metric = "ARI")
+```
+
+### Bootstrap Jaccard stability
+
+`cluster_stability()` resamples the observations, refits S-MPDP, and matches each original cluster to the closest bootstrap cluster by Jaccard overlap.
+
+```r
+stability <- cluster_stability(
+  X,
+  h = 2,
+  k_neighbors = 15,
+  B = 25,
+  seed = 12345
+)
+
+stability
+plot(stability)
+```
+
+The function reports a score for each cluster and an overall mean. A high mean is reassuring, but it does not replace inspection of individual clusters. A single weak cluster can be hidden by a good overall average.
+
+## Evaluate a clustering
+
+`cluster_metrics()` accepts the feature matrix, optional true labels, and predicted labels. It returns eight measures in a fixed order.
+
+```r
+pred <- smpdp_fit$cluster_results$cluster
+scores <- cluster_metrics(X, true_labels = moons$class, pred_labels = pred)
+scores
+```
+
+| Measure | Interpretation | Preferred direction |
+|---|---|---|
+| ARI | Agreement with known classes, adjusted for chance | Larger |
+| NMI | Shared information between classes and clusters | Larger |
+| Silhouette | Cohesion and separation in feature space | Larger |
+| Purity | Majority-class share within clusters | Larger |
+| Accuracy | Best one-to-one matching of clusters and classes | Larger |
+| CH | Between-cluster to within-cluster dispersion | Larger |
+| DB | Within-cluster spread relative to separation | Smaller |
+| Dunn | Minimum separation relative to maximum cluster diameter | Larger |
+
+ARI, NMI, purity, and accuracy require known labels. Silhouette, CH, DB, and Dunn use the feature matrix. Silhouette needs the optional `cluster` package, and accuracy needs `clue`. Pairwise-distance measures can be expensive on large data, so you can request only the metrics needed.
+
+```r
+cluster_metrics(
+  X,
+  true_labels = NULL,
+  pred_labels = pred,
+  metrics = c("Silhouette", "CH", "DB")
+)
+```
+
+When labels are available, keep them out of the clustering feature matrix. They are for evaluation, not fitting.
+
+## Compare methods fairly
+
+`run_clustering_benchmarks()` returns labels from a selected set of methods on the same feature matrix. Available choices are S-MPDP, K-Means, conventional spectral clustering, HDBSCAN, agglomerative clustering, and optional multi-level spectral clustering through `sClust`.
+
+```r
+predictions <- run_clustering_benchmarks(
+  X,
+  L = 2,
+  k_neb = 15,
+  mutual = TRUE,
+  seed = 12345,
+  methods = c("S-MPDP", "K-Means", "Spectral", "Agglomerative")
+)
+
+comparison <- t(vapply(
+  predictions,
+  function(z) cluster_metrics(X, moons$class, z),
+  numeric(8)
+))
+
+round(comparison, 3)
+```
+
+HDBSCAN requires `dbscan`. MSC requires `sClust`. Optional methods are skipped with a warning when their packages are not installed. HDBSCAN may return noise points, and MSC may return a different final number of groups from the requested maximum. Both facts should be considered when comparing results.
+
+For a study with several datasets, put one score matrix together with datasets in rows and methods in columns. `friedman_ranks()` ranks the methods within each dataset and reports the Friedman and Iman-Davenport tests.
+
+```r
+ari_by_dataset <- rbind(
+  data_A = c(`S-MPDP` = 0.86, `K-Means` = 0.51, Spectral = 0.80),
+  data_B = c(`S-MPDP` = 0.72, `K-Means` = 0.68, Spectral = 0.70),
+  data_C = c(`S-MPDP` = 0.91, `K-Means` = 0.75, Spectral = 0.84)
+)
+
+ranks <- friedman_ranks(ari_by_dataset, higher_better = TRUE)
+ranks
+plot(ranks)
+```
+
+## Data included with clusta
+
+The package contains seven real benchmark datasets and three additional worked or simulated datasets.
+
+```{=html}
+<div class="dataset-grid">
+  <div class="dataset-card"><h4>glass</h4><p>214 observations, 9 features, and 6 glass classes.</p></div>
+  <div class="dataset-card"><h4>breast_cancer</h4><p>569 observations, 30 diagnostic features, and 2 classes.</p></div>
+  <div class="dataset-card"><h4>raisin</h4><p>900 observations, 7 morphological features, and 2 classes.</p></div>
+  <div class="dataset-card"><h4>rice</h4><p>3,810 observations, 7 shape features, and 2 classes.</p></div>
+  <div class="dataset-card"><h4>ceramic</h4><p>88 observations, 17 chemical features, and 2 archaeological groups.</p></div>
+  <div class="dataset-card"><h4>image_segmentation</h4><p>2,310 observations, 19 image features, and 7 classes.</p></div>
+  <div class="dataset-card"><h4>waveform</h4><p>5,000 observations, 21 features, and 3 classes.</p></div>
+  <div class="dataset-card"><h4>v_shape</h4><p>A stored two-dimensional V-shaped benchmark.</p></div>
+  <div class="dataset-card"><h4>cassini</h4><p>A stored two-dimensional Cassini benchmark with 3 classes.</p></div>
+  <div class="dataset-card"><h4>smpdp_toy</h4><p>A small worked dataset for learning the S-MPDP workflow.</p></div>
+</div>
+```
+
+A typical labelled dataset has numeric feature columns and a separate `class` column.
+
+```r
+data(ceramic)
+X_ceramic <- ceramic[, setdiff(names(ceramic), "class")]
+y_ceramic <- ceramic$class
+
+ceramic_fit <- spectral_mpdp(X_ceramic, h = 2, k_neighbors = 41)
+cluster_metrics(X_ceramic, y_ceramic, ceramic_fit$cluster_results$cluster)
+```
+
+Six generators make it easy to explore non-convex shapes and to test code at different sample sizes.
+
+```r
+two_moons   <- gen_two_moons(n = 500)
+v_data      <- gen_v_shape(n = 400)
+circles     <- gen_concentric_circles(n = 1500)
+smiley      <- gen_smiley(n = 400)
+spirals     <- gen_three_spirals(n = 900, noise = 0.02, cycles = 1.4)
+cassini_sim <- gen_cassini(n = 2000)
+```
+
+Each generator returns `x`, `y`, and `class`. The random seed is set inside the generator so that the same call is reproducible.
+
+## Work with the returned objects
+
+The `clusta` class follows familiar R conventions.
+
+```{=html}
+<div class="fn-card">
+<code>print(fit)</code> &nbsp; overall result, centres, fit measures, and optimality information<br>
+<code>summary(fit)</code> &nbsp; one row per cluster with size, proportion, WCSS, silhouette, and centres<br>
+<code>plot(fit)</code> &nbsp; cluster or silhouette figure in base R<br>
+<code>fitted(fit)</code> &nbsp; fitted centre for every observation<br>
+<code>predict(fit, newdata)</code> &nbsp; new labels, using the exact separating line for exact2d and nearest centres otherwise<br>
+<code>fviz_clusta(fit)</code> &nbsp; a ggplot2 cluster or silhouette figure
+</div>
+```
+
+```r
+names(fit_iris)
+fit_iris$cluster
+fit_iris$centers
+fit_iris$size
+fit_iris$withinss
+fit_iris$tot.withinss
+fit_iris$bic
+fit_iris$avg.silwidth
+fit_iris$direction
+fit_iris$var_explained
+```
+
+Direct access is useful for reports and tables, but `print()` and `summary()` are the safer starting points because they explain the method-specific result.
+
+## Explore the package in the Shiny app
+
+The app is included inside the installed package. Install its optional interface packages once, then launch it with:
+
+```r
+install.packages(c("shiny", "bslib", "ggplot2", "DT"))
+shiny::runApp(system.file("app", package = "clusta"))
+```
+
+The app is designed as an analysis path rather than a gallery. A useful first run is:
+
+1. Choose a built-in dataset, such as Ceramic, Two moons, or Waveform.
+2. Check the supplied starting values for the number of clusters and neighbourhood size.
+3. Choose the mutual or union graph rule.
+4. Decide whether to compare baseline methods.
+5. Click **Run clustering**.
+6. Read the overview and graph-health message before moving to the figures.
+7. Inspect the cluster map, spectral signal, confidence, eigengap, similarity matrix, and cluster profiles.
+8. Use the stability, bootstrap, PCA, and dynamic-programming panels when they answer your analysis question.
+9. Export the assignments, metrics, figures, or generated R code.
+
+The benchmark comparison uses the same **Run clustering** button. There is no separate benchmark button. The selected baseline methods and metrics are applied when the main analysis runs.
+
+### Built-in app examples
+
+The app includes Iris, all seven real package datasets, and six simulated shapes. Each built-in choice supplies a tested starting value for `h` and `k_neighbors`. For example, Waveform starts with three clusters and `k_neighbors = 50`.
+
+For large built-in datasets, baseline comparisons are turned off automatically because dense spectral methods and pairwise-distance metrics can take time and memory. You can turn them back on when the comparison is needed.
+
+### Upload your own CSV
+
+When uploading a CSV file:
+
+1. Select the numeric feature columns.
+2. If known labels are present, select the label column separately.
+3. Decide whether to standardise the features.
+4. Check that `k_neighbors` is smaller than the number of observations.
+5. Run the analysis and read any graph-connectivity warning.
+
+The selected label column is removed from the clustering features, even when the labels are numeric. This prevents the true answer from leaking into the fit. Constant features remain available to the clustering method, but the app omits them from standardised PCA calculations because they have zero variance.
+
+The **R code** tab is especially useful. It writes a reproducible script that reflects the current controls, so an app analysis can be rerun at the console and shared with collaborators.
+
+## A careful analysis workflow
+
+A reliable clustering analysis needs more than a single fitted object. The following sequence works well for many applications:
+
+1. Clean the feature matrix and deal with missing values before fitting.
+2. Keep known labels separate from the features.
+3. Standardise when variables are measured on very different scales, unless the original scale has a scientific meaning that should be preserved.
+4. Choose a method that matches the structure of the problem.
+5. For S-MPDP, inspect graph components and isolated points.
+6. Study more than one value of `h` and `k_neighbors`.
+7. Examine the cluster map, signal, confidence, and profiles together.
+8. Report both internal and external metrics when labels exist.
+9. Check bootstrap stability.
+10. Compare with credible baseline methods.
+11. Save the settings, seed, package version, and exported R code.
+
+This does not guarantee that every cluster is scientifically meaningful. It makes the reasoning visible and the result reproducible.
+
+## What the package does not claim
+
+clusta gives exact solutions in several clearly defined settings, but it does not turn every multivariate clustering problem into a global optimisation result.
+
+- `wcss` is globally optimal for a contiguous partition of one variable.
+- `projection` and multivariate `estvar` are exact on the chosen one-dimensional score.
+- `parametric` is optimal on its fitted-model grid for the chosen Stage 2 objective.
+- `exact2d` certifies the two-cluster WCSS optimum for exactly two variables.
+- `sweep` is global for two clusters and otherwise searches partitions separated by parallel lines.
+- `sequence` is exact along the supplied order.
+- `graph` is a minimum-spanning-tree heuristic built from Euclidean feature distances. Version 1.0-1 does not use a custom spatial adjacency matrix.
+- S-MPDP is exact for Stage 2 boundary placement on the fitted spectral signal. It does not claim the global optimum over all partitions of the original multivariate space.
+
+These limits tell the reader exactly what was optimised and help another researcher reproduce the analysis.
+
+## Quick reference
+
+| Task | Function |
+|---|---|
+| Use the common nine-method interface | `clusta(data, k, method)` |
+| Run S-MPDP directly | `spectral_mpdp(data, h, k_neighbors)` |
+| Run distribution-aware DP on one variable | `mpdp(data, h)` |
+| Compare clusta with k-means | `clusta_compare(data, k)` |
+| Scan candidate cluster counts | `clusta_elbow(data, k_range)` |
+| Obtain an eigengap guide | `suggest_k(data, k_neighbors, k_max)` |
+| Check bootstrap stability | `cluster_stability(data, h, k_neighbors, B)` |
+| Study neighbourhood and cluster-count sensitivity | `smpdp_sensitivity(data, truth, k_grid, h_grid)` |
+| Compute eight validation measures | `cluster_metrics(X, true_labels, pred_labels)` |
+| Run selected comparison methods | `run_clustering_benchmarks(X, L, k_neb)` |
+| Compare method ranks across datasets | `friedman_ranks(scores)` |
+| Draw a ggplot2 figure for a clusta object | `fviz_clusta(object)` |
+| Launch the app | `shiny::runApp(system.file("app", package = "clusta"))` |
+
+## Citation and authors
+
+```r
+citation("clusta")
+```
+
+Until the CRAN page and companion papers are available, cite the software as:
+
+> Reddy, K. G., Bulivou, G. and Khan, M. G. M. (2026). *clusta: Spectral, Distribution-Aware and Dynamic-Programming Clustering*. R package version 1.0-1.
+
+The package is written by Karuna G. Reddy, Gabiriele Bulivou, and M. G. M. Khan. The S-MPDP methods paper and a separate software paper are in preparation.
+
+::: {.callout-note appearance="simple"}
+The permanent CRAN link will be added after the package is accepted. The GitHub repository, vignettes, help pages, and Shiny app already contain the material needed to begin using and testing version 1.0-1.
+:::

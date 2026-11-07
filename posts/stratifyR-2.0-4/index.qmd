@@ -1,11 +1,12 @@
 ---
-title: "stratifyR 2.0-3"
+title: "stratifyR 2.0-4"
 subtitle: "Optimal Survey Stratification in R"
-description: "Dynamic programming · Exact solver · COBYLA · GLOBAL · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-3"
+description: "Dynamic programming · Exact solver · Full variance and take-all strata · COBYLA · GLOBAL · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-4"
 author: "Karuna G. Reddy and M. G. M. Khan"
-date: "2026-10-21"
+date: "2026-10-25"
 aliases:
   - /posts/stratifyR-2.0-1/
+  - /posts/stratifyR-2.0-3/
 categories: [R, stratifyR, survey sampling, CRAN]
 image: stratifyr-logo.png
 format:
@@ -62,7 +63,7 @@ execute:
 <div class="pkg-hero">
   <img src="stratifyr-logo.png" alt="stratifyR logo"/>
   <div>
-    <h1>stratifyR 2.0-3</h1>
+    <h1>stratifyR 2.0-4</h1>
     <div class="subtitle">Optimal Survey Stratification in R</div>
     <div class="badges">
       <a href="https://cran.r-project.org/package=stratifyR"><img src="https://www.r-pkg.org/badges/version/stratifyR" alt="CRAN"/></a>
@@ -79,7 +80,7 @@ execute:
 
 When your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.
 
-**stratifyR 2.0-3** works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report.
+**stratifyR 2.0-4** works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report.
 
 ::: {.callout-note}
 ## Why stratification matters
@@ -106,8 +107,9 @@ res$OSB       # optimal stratum boundaries
 res$nh        # sample sizes per stratum
 res$Wh        # stratum weights
 res$Vh        # within-stratum variances
-res$WhSh      # each stratum's Neyman cost contribution
-res$WhShTot   # total Neyman cost (lower = better)
+res$WhSh      # each stratum's contribution to the objective function
+res$WhShTot   # objective function, sum of Wh*Sh (lower = better)
+res$variance  # variance of the estimated mean, with the finite population correction
 res$distr     # fitted distribution name
 res$fit       # fitted distribution parameters
 ```
@@ -120,7 +122,7 @@ Before placing any boundaries, `strata.data()` automatically fits your variable'
 
 `Normal` · `Log-Normal` · `Gamma` · `Weibull` · `Exponential` · `Cauchy` · `Uniform` · `Pareto` · `Triangular` · `Right-Triangular`
 
-The fitted distribution is used by the Dynamic Programming solver to compute each stratum's contribution exactly. In 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.
+The fitted distribution is used by the Dynamic Programming solver to compute each stratum's contribution exactly. Since 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.
 
 ::: {.callout-tip}
 Already know the distribution? Use `strata.distr()` to supply it directly. No data needed (see [Design Without Data](#design-without-data)).
@@ -170,6 +172,34 @@ res$kkt_residuals    # first-order optimality residuals
 
 ---
 
+## Full Variance and a Take-All Stratum
+
+The usual objective, the sum of $W_h S_h$, ignores the finite population correction, and Neyman allocation can ask for more units than a stratum holds. Both matter when your sample is a large part of the population, or when a few very large units sit at the top of the range, as in many business and farm surveys.
+
+Version 2.0-4 adds two options to the exact solver for these cases:
+
+```r
+# minimise the full variance, including the finite population correction
+fv <- strata.data(sugarcane$Production, h = 4, n = 500,
+                  method = "exact", fpc = TRUE)
+
+# also let the top stratum be sampled completely (a take-all stratum)
+ta <- strata.data(sugarcane$Production, h = 4, n = 500,
+                  method = "exact", takeall = TRUE)
+
+c(default = ex$variance, fpc = fv$variance, takeall = ta$variance)
+ta$takeall   # units in the take-all stratum (0 if none)
+```
+
+With `fpc = TRUE` the minimum is certified, so `optimality_gap` is 0 when the bound is reached. With `takeall = TRUE` every size of take-all stratum is tried together with the other boundaries. The `variance` element is computed from the final allocation, so you can compare the designs directly and keep the smallest.
+
+::: {.callout-tip}
+## When to use it
+If n/N is not small, or the top stratum looks over-allocated, use `method = "exact", takeall = TRUE`. In our benchmark of 65 settings it gave the smallest achieved variance every time, in about 12 seconds in median.
+:::
+
+---
+
 ## Visualising the Design
 
 ::: {.panel-tabset}
@@ -184,7 +214,7 @@ plot(res)
 
 ### 3D Cost Surface
 
-Interactive plotly surface showing how the Neyman cost changes as boundaries move. Reveals that the optimum sits in a well.
+Interactive plotly surface showing how the objective function changes as boundaries move. Reveals that the optimum sits in a well.
 
 ```r
 plot(res, type = "3d")
@@ -192,7 +222,7 @@ plot(res, type = "3d")
 
 ### Boundary Explorer
 
-One slider per interior boundary. Drag it and the Neyman cost updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.
+One slider per interior boundary. Drag it and the objective function updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.
 
 ```r
 plot(res, type = "interactive")
@@ -220,12 +250,12 @@ The equivalent SRS size tells you how many units a simple random sample would ne
 
 ## Choosing the Number of Strata
 
-More strata always lower the Neyman cost, but gains level off quickly. Scan a range and look for the elbow:
+More strata always lower the objective function, but the gains level off quickly. Scan a range and look for the elbow:
 
 ```r
-for (H in 2:6) {
-  r <- strata.data(sugarcane$Production, h = H, n = 500, method = "dp")
-  cat("H =", H, "  Neyman cost =", round(r$WhShTot, 2), "\n")
+for (L in 2:6) {
+  r <- strata.data(sugarcane$Production, h = L, n = 500, method = "cobyla")
+  cat("L =", L, "  objective =", round(r$WhShTot, 2), "\n")
 }
 ```
 
@@ -271,36 +301,34 @@ install.packages(c("shiny", "bslib", "DT"))   # once
 stratifyRApp()
 ```
 
-The app covers the full workflow across eight tabs:
+The app covers the full workflow across eight tabs. With the EXACT solver, two tick boxes switch on the full-variance and take-all options, and the results then show the variance and the take-all units.
 
 ```{=html}
 <div class="fn-card">
 <strong>Optimal Boundaries:</strong> per-stratum summary table + 2D density plot<br>
 <strong>Design Comparison:</strong> variance, SE, design effect vs. SRS and proportional<br>
-<strong>Strata Count:</strong> Neyman cost curve with elbow recommendation<br>
+<strong>Strata Count:</strong> objective function curve with elbow recommendation<br>
 <strong>Boundary Methods:</strong> DP vs. classical boundary rules side by side<br>
 <strong>Sample Size:</strong> target precision to required sample size<br>
 <strong>Allocation:</strong> SRS / proportional / Neyman compared<br>
 <strong>Cost-Constrained:</strong> enter per-stratum costs and see the cost-aware design<br>
-<strong>Visualise:</strong> 2D density, 3D cost surface, interactive boundary explorer
+<strong>Visualise:</strong> 2D density, 3D objective surface, interactive boundary explorer
 </div>
 ```
 
 ---
 
-## What Is New in Version 2.0-3
-
-Versions 2.0-2 and 2.0-3 are accuracy releases. They came out of a large simulation study (ten distributions, 20 random seeds, two to six strata), checked against the exact optimum.
+## What Is New in Version 2.0-4
 
 ```{=html}
-<div class="new-item"><span class="tag">NEW</span><div><strong>Exact solver</strong>: <code>method = "exact"</code> runs dynamic programming on the data and returns the best possible partition. It is also the reference the other solvers are checked against.</div></div>
-<div class="new-item"><span class="tag">BETTER</span><div><strong>COBYLA and GLOBAL</strong> now reach the exact optimum, or come within about 0.1% of it, on every population in the study, including very heavy-tailed ones such as Pareto and Cauchy samples.</div></div>
-<div class="new-item"><span class="tag">BETTER</span><div><strong>DP</strong> adds a short local refinement after the grid search, and two traceback fixes make it more robust on heavy-tailed data.</div></div>
-<div class="new-item"><span class="tag">FIX</span><div><strong>Distribution fitting</strong>: Pareto and triangular fits now work inside the package, with a numerically stable Pareto likelihood and robust Cauchy starting values.</div></div>
-<div class="new-item"><span class="tag">FIX</span><div><strong>Boundaries and costs</strong>: boundaries are kept at full precision, every unit is always counted, and tied values are never split across strata.</div></div>
-<div class="new-item"><span class="tag">FIX</span><div><code>strata.distr()</code> now gives stratum sizes that add up to N exactly, and gives a clear message when the range lies outside a uniform or triangular distribution.</div></div>
-<div class="new-item"><span class="tag">COMPAT</span><div>Fully backward-compatible. Existing <code>strata.data()</code> and <code>strata.distr()</code> calls work unchanged.</div></div>
+<div class="new-item"><span class="tag">NEW</span><div><strong>Full variance</strong>: <code>fpc = TRUE</code> makes the exact solver minimise the full variance of the estimated mean, including the finite population correction, with a certificate of optimality.</div></div>
+<div class="new-item"><span class="tag">NEW</span><div><strong>Take-all stratum</strong>: <code>takeall = TRUE</code> lets the top stratum be sampled completely when this lowers the variance, choosing its size together with the other boundaries.</div></div>
+<div class="new-item"><span class="tag">NEW</span><div><strong>New output</strong>: every result now carries <code>variance</code> (with the finite population correction) and <code>takeall</code>, and <code>summary()</code> shows them. A warning is given if a stratum gets fewer than 2 sample units.</div></div>
+<div class="new-item"><span class="tag">BETTER</span><div><strong>Shiny app</strong>: tick boxes for the new options, readable drop-down lists, and the number of strata now written as L throughout.</div></div>
+<div class="new-item"><span class="tag">COMPAT</span><div>Fully backward-compatible. Existing <code>strata.data()</code> and <code>strata.distr()</code> calls give the same results as before.</div></div>
 ```
+
+Earlier in 2.0-2 and 2.0-3: the exact solver, accuracy improvements to COBYLA, GLOBAL and DP from a 20-seed simulation study, and fixes to the Pareto, triangular and Cauchy fits.
 
 Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, `compare_designs()`, solution-quality diagnostics, the 2D, 3D and interactive plots, and the Shiny app.
 
@@ -325,10 +353,11 @@ Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, `com
 |----------|---------|
 | `strata.data(x, h, n)` | Fit + optimal boundaries + allocation from data |
 | `strata.data(x, h, n, method = "exact")` | Exact optimum on the data |
+| `strata.data(x, h, n, method = "exact", takeall = TRUE)` | Full variance with a take-all stratum |
 | `strata.distr(h, n, distr, params, N)` | Optimal design from assumed distribution |
 | `compare_designs(res)` | Design efficiency vs. SRS and proportional |
 | `plot(res)` | 2D strata density plot |
-| `plot(res, type = "3d")` | Interactive 3D Neyman cost surface |
+| `plot(res, type = "3d")` | Interactive 3D objective surface |
 | `plot(res, type = "interactive")` | Real-time boundary explorer |
 | `stratifyRApp()` | Launch Shiny app |
 | `summary(res)` | Full per-stratum table |
@@ -342,11 +371,13 @@ Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, `com
 citation("stratifyR")
 ```
 
-> Reddy, K. G., & Khan, M. G. M. (2026). *stratifyR: Optimal Stratification of Univariate Populations*. R package version 2.0-3. <https://cran.r-project.org/package=stratifyR>
+> Reddy, K. G., & Khan, M. G. M. (2026). *stratifyR: Optimal Stratification of Univariate Populations*. R package version 2.0-4. <https://cran.r-project.org/package=stratifyR>
 
 ---
 
 ::: {.callout-note appearance="simple"}
 stratifyR is on CRAN: <https://cran.r-project.org/package=stratifyR>  
-A full software paper benchmarking the four solvers is in preparation. We would love to hear how you are using it. Get in touch or leave a comment.
+A full software paper on stratifyR 2.0, benchmarking all four solvers against the exact optimum and the classical methods, is being prepared for journal submission. 
+
+We would love to hear how you are using the package. Get in touch or leave a comment.
 :::
