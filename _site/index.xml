@@ -55,7 +55,7 @@
       <img src="https://img.shields.io/badge/license-GPL%20%28%3E%3D%203%29-blue.svg" alt="GPL version 3 or later">
       <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1 or later">
     </div>
-    <div class="install-box">install.packages("clusta_1.0-1.tar.gz", repos = NULL, type = "source")</div>
+    <div class="install-box">remotes::install_github("karunaredz/clusta")</div>
   </div>
 </div>
 <p>Clustering often begins with a simple question: which observations belong together? The answer becomes less simple when groups form rings, crescents, spirals, or ordered segments. A single method is rarely suitable for all of these settings.</p>
@@ -72,26 +72,23 @@
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The package is currently distributed as a source package while its CRAN submission is being completed. The CRAN installation command and permanent CRAN link will be added here after acceptance.</p>
+<p>The package is available on GitHub while its CRAN submission is being completed. Install it from GitHub for now, as shown below. The CRAN installation command and permanent CRAN link will be added here after acceptance.</p>
 </div>
 </div>
 <section id="install-and-load-the-package" class="level2">
 <h2 class="anchored" data-anchor-id="install-and-load-the-package">Install and load the package</h2>
-<p>Place the source tarball in your working directory and run:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+<p>Install the development version from GitHub:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
+font-style: inherit;"># install.packages("remotes")</span></span>
+<span id="cb1-2">remotes<span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">"clusta_1.0-1.tar.gz"</span>, <span class="at" style="color: #657422;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
 background-color: null;
-font-style: inherit;">repos =</span> <span class="cn" style="color: #8f5902;
+font-style: inherit;">install_github</span>(<span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">NULL</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"source"</span>)</span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
+font-style: inherit;">"karunaredz/clusta"</span>)</span>
+<span id="cb1-3"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">library</span>(clusta)</span></code></pre></div></div>
 <p>The core package uses <code>fitdistrplus</code>. Other packages are suggested rather than required. They add the Shiny app, <code>ggplot2</code> figures, some validation measures, additional benchmark methods, and the optional FitVerse distribution engine.</p>
@@ -1385,7 +1382,7 @@ font-style: inherit;">"clusta"</span>)</span></code></pre></div></div>
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p>The permanent CRAN link will be added after the package is accepted. The source package, vignettes, help pages, and Shiny app already contain the material needed to begin using and testing version 1.0-1.</p>
+<p>The permanent CRAN link will be added after the package is accepted. The GitHub repository, vignettes, help pages, and Shiny app already contain the material needed to begin using and testing version 1.0-1.</p>
 </div>
 </div>
 </div>
@@ -1469,7 +1466,7 @@ font-style: inherit;">"clusta"</span>)</span></code></pre></div></div>
       <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1+">
     </div>
     <div class="install-box">
-      install.packages("multistrata_1.0-1.tar.gz", repos = NULL, type = "source")
+      remotes::install_github("karunaredz/multistrata")
     </div>
   </div>
 </div>
@@ -1498,21 +1495,18 @@ font-style: inherit;">"clusta"</span>)</span></code></pre></div></div>
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>multistrata is not on CRAN yet. For now, install the current source package from the tarball:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+<p>multistrata is not on CRAN yet. For now, install it from GitHub:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
+font-style: inherit;"># install.packages("remotes")</span></span>
+<span id="cb1-2">remotes<span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">"multistrata_1.0-1.tar.gz"</span>, <span class="at" style="color: #657422;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
 background-color: null;
-font-style: inherit;">repos =</span> <span class="cn" style="color: #8f5902;
+font-style: inherit;">install_github</span>(<span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">NULL</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"source"</span>)</span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
+font-style: inherit;">"karunaredz/multistrata"</span>)</span>
+<span id="cb1-3"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">library</span>(multistrata)</span></code></pre></div></div>
 <p>It needs <code>nloptr</code> and <code>MASS</code>, and <code>shiny</code>, <code>bslib</code>, <code>DT</code> and <code>plotly</code> for the app. Once the package is accepted, the usual <code>install.packages("multistrata")</code> will work and the CRAN link will be added here.</p>
@@ -2906,7 +2900,7 @@ font-style: inherit;">"multistrata"</span>)</span></code></pre></div></div>
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p>multistrata is not on CRAN yet. For now it installs from the source package, as shown at the top of this post. The CRAN link will be added here after acceptance. We would love to hear how you are using it. Leave a comment or get in touch directly.</p>
+<p>multistrata is not on CRAN yet. For now it installs from GitHub, as shown at the top of this post. The CRAN link will be added here after acceptance. We would love to hear how you are using it. Leave a comment or get in touch directly.</p>
 </div>
 </div>
 </div>

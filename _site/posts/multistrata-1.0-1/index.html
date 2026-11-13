@@ -295,7 +295,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1+">
     </div>
     <div class="install-box">
-      install.packages("multistrata_1.0-1.tar.gz", repos = NULL, type = "source")
+      remotes::install_github("karunaredz/multistrata")
     </div>
   </div>
 </div>
@@ -324,9 +324,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>multistrata is not on CRAN yet. For now, install the current source package from the tarball:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"multistrata_1.0-1.tar.gz"</span>, <span class="at">repos =</span> <span class="cn">NULL</span>, <span class="at">type =</span> <span class="st">"source"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(multistrata)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>multistrata is not on CRAN yet. For now, install it from GitHub:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("remotes")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"karunaredz/multistrata"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(multistrata)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>It needs <code>nloptr</code> and <code>MASS</code>, and <code>shiny</code>, <code>bslib</code>, <code>DT</code> and <code>plotly</code> for the app. Once the package is accepted, the usual <code>install.packages("multistrata")</code> will work and the CRAN link will be added here.</p>
 </div>
 </div>
@@ -890,7 +891,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p>multistrata is not on CRAN yet. For now it installs from the source package, as shown at the top of this post. The CRAN link will be added here after acceptance. We would love to hear how you are using it. Leave a comment or get in touch directly.</p>
+<p>multistrata is not on CRAN yet. For now it installs from GitHub, as shown at the top of this post. The CRAN link will be added here after acceptance. We would love to hear how you are using it. Leave a comment or get in touch directly.</p>
 </div>
 </div>
 </div>

@@ -1,12 +1,13 @@
 ---
-title: "stratifyR 2.0-4"
+title: "stratifyR 2.1-0"
 subtitle: "Optimal Survey Stratification in R"
-description: "Dynamic programming · Exact solver · Full variance and take-all strata · COBYLA · GLOBAL · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-4"
+description: "Dynamic programming · Exact solver · Full variance and take-all strata · COBYLA · GLOBAL · Accessor functions · Design efficiency · Shiny app · v2.1-0"
 author: "Karuna G. Reddy and M. G. M. Khan"
-date: "2026-10-25"
+date: "2026-11-14"
 aliases:
   - /posts/stratifyR-2.0-1/
   - /posts/stratifyR-2.0-3/
+  - /posts/stratifyR-2.0-4/
 categories: [R, stratifyR, survey sampling, CRAN]
 image: stratifyr-logo.png
 format:
@@ -63,16 +64,16 @@ execute:
 <div class="pkg-hero">
   <img src="stratifyr-logo.png" alt="stratifyR logo"/>
   <div>
-    <h1>stratifyR 2.0-4</h1>
+    <h1>stratifyR 2.1-0</h1>
     <div class="subtitle">Optimal Survey Stratification in R</div>
     <div class="badges">
       <a href="https://cran.r-project.org/package=stratifyR"><img src="https://www.r-pkg.org/badges/version/stratifyR" alt="CRAN"/></a>
       <a href="https://cran.r-project.org/package=stratifyR"><img src="https://cranlogs.r-pkg.org/badges/stratifyR" alt="Downloads"/></a>
-      <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT"/>
+      <img src="https://img.shields.io/badge/license-GPL%20(%3E%3D%203)-blue.svg" alt="GPL (>= 3)"/>
       <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1+"/>
     </div>
     <div class="install-box">
-      install.packages("stratifyR") &nbsp;·&nbsp; library(stratifyR)
+      install.packages("stratifyR") &nbsp;·&nbsp; remotes::install_github("karunaredz/stratifyR")
     </div>
   </div>
 </div>
@@ -80,7 +81,7 @@ execute:
 
 When your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.
 
-**stratifyR 2.0-4** works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report.
+**stratifyR 2.1-0** works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report.
 
 ::: {.callout-note}
 ## Why stratification matters
@@ -102,16 +103,17 @@ summary(res)
 
 One call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.
 
+New in 2.1-0, simple functions take the results out for you, so you never need to know how the result is stored:
+
 ```r
-res$OSB       # optimal stratum boundaries
-res$nh        # sample sizes per stratum
-res$Wh        # stratum weights
-res$Vh        # within-stratum variances
-res$WhSh      # each stratum's contribution to the objective function
-res$WhShTot   # objective function, sum of Wh*Sh (lower = better)
-res$variance  # variance of the estimated mean, with the finite population correction
-res$distr     # fitted distribution name
-res$fit       # fitted distribution parameters
+boundaries(res)            # optimal stratum boundaries
+allocation(res)            # one row per stratum: Nh, Wh, Sh, WhSh, nh and fh
+objective(res)             # objective function, sum of Wh*Sh (lower = better)
+variance(res)              # variance of the estimated mean, with the finite population correction
+fitted_distribution(res)   # fitted distribution and its parameters
+
+s <- summary(res)          # a summary object; print it when you want to see it
+as.data.frame(s)           # the summary table as a data frame
 ```
 
 ---
@@ -160,23 +162,13 @@ cob  <- strata.data(sugarcane$Production, h = 4, n = 500, method = "cobyla")
 glob <- strata.data(sugarcane$Production, h = 4, n = 500, method = "global")
 ```
 
-### Solution Quality Diagnostics
-
-For COBYLA and GLOBAL, check how close the solution is to optimal:
-
-```r
-res$converged        # did the solver converge?
-res$optimality_gap   # Cauchy-Schwarz gap: distance above the lower bound
-res$kkt_residuals    # first-order optimality residuals
-```
-
 ---
 
 ## Full Variance and a Take-All Stratum
 
 The usual objective, the sum of $W_h S_h$, ignores the finite population correction, and Neyman allocation can ask for more units than a stratum holds. Both matter when your sample is a large part of the population, or when a few very large units sit at the top of the range, as in many business and farm surveys.
 
-Version 2.0-4 adds two options to the exact solver for these cases:
+The exact solver has two options for these cases:
 
 ```r
 # minimise the full variance, including the finite population correction
@@ -187,11 +179,11 @@ fv <- strata.data(sugarcane$Production, h = 4, n = 500,
 ta <- strata.data(sugarcane$Production, h = 4, n = 500,
                   method = "exact", takeall = TRUE)
 
-c(default = ex$variance, fpc = fv$variance, takeall = ta$variance)
-ta$takeall   # units in the take-all stratum (0 if none)
+c(default = variance(ex), fpc = variance(fv), takeall = variance(ta))
+summary(ta)   # shows the take-all stratum, if one is chosen
 ```
 
-With `fpc = TRUE` the minimum is certified, so `optimality_gap` is 0 when the bound is reached. With `takeall = TRUE` every size of take-all stratum is tried together with the other boundaries. The `variance` element is computed from the final allocation, so you can compare the designs directly and keep the smallest.
+With `fpc = TRUE` the minimum is certified when the bound is reached. With `takeall = TRUE` every size of take-all stratum is tried together with the other boundaries. `variance()` is computed from the final allocation, so you can compare the designs directly and keep the smallest.
 
 ::: {.callout-tip}
 ## When to use it
@@ -255,7 +247,7 @@ More strata always lower the objective function, but the gains level off quickly
 ```r
 for (L in 2:6) {
   r <- strata.data(sugarcane$Production, h = L, n = 500, method = "cobyla")
-  cat("L =", L, "  objective =", round(r$WhShTot, 2), "\n")
+  cat("L =", L, "  objective =", round(objective(r), 2), "\n")
 }
 ```
 
@@ -273,7 +265,7 @@ g <- strata.distr(h = 4, initval = 500, dist = 119500,
                   distr = "lnorm",
                   params = c(meanlog = 9.616, sdlog = 0.703),
                   n = 1000, N = 20000, method = "dp")
-summary(g)
+allocation(g)
 compare_designs(g)
 ```
 
@@ -288,6 +280,7 @@ ch <- c(20, 30, 50, 80)   # cost per sampled unit, stratum 1 to 4
 
 cost_res <- strata.data(sugarcane$Production, h = 4, n = 500,
                         method = "dp", cost = TRUE, ch = ch)
+allocation(cost_res)
 ```
 
 The cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design's, so it is the better choice when the budget, rather than the sample size, is fixed.
@@ -318,19 +311,20 @@ The app covers the full workflow across eight tabs. With the EXACT solver, two t
 
 ---
 
-## What Is New in Version 2.0-4
+## What Is New in Version 2.1-0
 
 ```{=html}
-<div class="new-item"><span class="tag">NEW</span><div><strong>Full variance</strong>: <code>fpc = TRUE</code> makes the exact solver minimise the full variance of the estimated mean, including the finite population correction, with a certificate of optimality.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong>Take-all stratum</strong>: <code>takeall = TRUE</code> lets the top stratum be sampled completely when this lowers the variance, choosing its size together with the other boundaries.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong>New output</strong>: every result now carries <code>variance</code> (with the finite population correction) and <code>takeall</code>, and <code>summary()</code> shows them. A warning is given if a stratum gets fewer than 2 sample units.</div></div>
-<div class="new-item"><span class="tag">BETTER</span><div><strong>Shiny app</strong>: tick boxes for the new options, readable drop-down lists, and the number of strata now written as L throughout.</div></div>
-<div class="new-item"><span class="tag">COMPAT</span><div>Fully backward-compatible. Existing <code>strata.data()</code> and <code>strata.distr()</code> calls give the same results as before.</div></div>
+<div class="new-item"><span class="tag">NEW</span><div><strong>Accessor functions</strong>: <code>boundaries()</code>, <code>allocation()</code>, <code>objective()</code>, <code>variance()</code> and <code>fitted_distribution()</code> take the results out of any design, and <code>as.data.frame()</code> works on results and summaries.</div></div>
+<div class="new-item"><span class="tag">BETTER</span><div><strong>summary()</strong> now returns a summary object that you can keep and reuse. It prints only when you ask, and looks the same as before.</div></div>
+<div class="new-item"><span class="tag">BETTER</span><div><strong>Clear messages</strong>: every argument is checked first, and a wrong input stops with a message that says what is expected.</div></div>
+<div class="new-item"><span class="tag">FIX</span><div><strong>Works alongside the stratification package</strong>: results now have class <code>c("stratifyR", "strata")</code>, so <code>print()</code> and <code>plot()</code> keep working when both packages are loaded.</div></div>
+<div class="new-item"><span class="tag">FIX</span><div>No more spurious "NaNs produced" warnings, and a clearer variance label in the Shiny app.</div></div>
+<div class="new-item"><span class="tag">COMPAT</span><div>Existing <code>strata.data()</code> and <code>strata.distr()</code> calls give the same results as before.</div></div>
 ```
 
-Earlier in 2.0-2 and 2.0-3: the exact solver, accuracy improvements to COBYLA, GLOBAL and DP from a 20-seed simulation study, and fixes to the Pareto, triangular and Cauchy fits.
+Earlier in 2.0-4: the full-variance and take-all options for the exact solver. In 2.0-2 and 2.0-3: the exact solver, accuracy improvements to COBYLA, GLOBAL and DP from a 20-seed simulation study, and fixes to the Pareto, triangular and Cauchy fits.
 
-Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, `compare_designs()`, solution-quality diagnostics, the 2D, 3D and interactive plots, and the Shiny app.
+Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, `compare_designs()`, the 2D, 3D and interactive plots, and the Shiny app.
 
 ---
 
@@ -360,6 +354,8 @@ Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, `com
 | `plot(res, type = "3d")` | Interactive 3D objective surface |
 | `plot(res, type = "interactive")` | Real-time boundary explorer |
 | `stratifyRApp()` | Launch Shiny app |
+| `boundaries(res)`, `allocation(res)` | Optimal boundaries, and the per-stratum table |
+| `objective(res)`, `variance(res)` | Objective function, and variance of the estimated mean |
 | `summary(res)` | Full per-stratum table |
 | `print(res)` | Console summary |
 
@@ -371,13 +367,13 @@ Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, `com
 citation("stratifyR")
 ```
 
-> Reddy, K. G., & Khan, M. G. M. (2026). *stratifyR: Optimal Stratification of Univariate Populations*. R package version 2.0-4. <https://cran.r-project.org/package=stratifyR>
+> Reddy, K. G., & Khan, M. G. M. (2026). *stratifyR: Optimal Stratification of Univariate Populations*. R package version 2.1-0. <https://cran.r-project.org/package=stratifyR>
 
 ---
 
 ::: {.callout-note appearance="simple"}
-stratifyR is on CRAN: <https://cran.r-project.org/package=stratifyR>  
-A full software paper on stratifyR 2.0, benchmarking all four solvers against the exact optimum and the classical methods, is being prepared for journal submission. 
+stratifyR is on CRAN: <https://cran.r-project.org/package=stratifyR>, and the development version is on GitHub: <https://github.com/karunaredz/stratifyR>.  
+A methods paper, benchmarking all four solvers against the exact optimum and the classical methods, is being prepared for journal submission. 
 
 We would love to hear how you are using the package. Get in touch or leave a comment.
 :::

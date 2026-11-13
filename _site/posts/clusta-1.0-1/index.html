@@ -305,7 +305,7 @@ window.Quarto = {
       <img src="https://img.shields.io/badge/license-GPL%20%28%3E%3D%203%29-blue.svg" alt="GPL version 3 or later">
       <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1 or later">
     </div>
-    <div class="install-box">install.packages("clusta_1.0-1.tar.gz", repos = NULL, type = "source")</div>
+    <div class="install-box">remotes::install_github("karunaredz/clusta")</div>
   </div>
 </div>
 <p>Clustering often begins with a simple question: which observations belong together? The answer becomes less simple when groups form rings, crescents, spirals, or ordered segments. A single method is rarely suitable for all of these settings.</p>
@@ -322,14 +322,15 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The package is currently distributed as a source package while its CRAN submission is being completed. The CRAN installation command and permanent CRAN link will be added here after acceptance.</p>
+<p>The package is available on GitHub while its CRAN submission is being completed. Install it from GitHub for now, as shown below. The CRAN installation command and permanent CRAN link will be added here after acceptance.</p>
 </div>
 </div>
 <section id="install-and-load-the-package" class="level2">
 <h2 class="anchored" data-anchor-id="install-and-load-the-package">Install and load the package</h2>
-<p>Place the source tarball in your working directory and run:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"clusta_1.0-1.tar.gz"</span>, <span class="at">repos =</span> <span class="cn">NULL</span>, <span class="at">type =</span> <span class="st">"source"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(clusta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Install the development version from GitHub:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("remotes")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"karunaredz/clusta"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(clusta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The core package uses <code>fitdistrplus</code>. Other packages are suggested rather than required. They add the Shiny app, <code>ggplot2</code> figures, some validation measures, additional benchmark methods, and the optional FitVerse distribution engine.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Optional tools used in later sections</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(</span>
@@ -836,7 +837,7 @@ window.Quarto = {
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p>The permanent CRAN link will be added after the package is accepted. The source package, vignettes, help pages, and Shiny app already contain the material needed to begin using and testing version 1.0-1.</p>
+<p>The permanent CRAN link will be added after the package is accepted. The GitHub repository, vignettes, help pages, and Shiny app already contain the material needed to begin using and testing version 1.0-1.</p>
 </div>
 </div>
 </div>
