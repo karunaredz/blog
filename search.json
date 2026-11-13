@@ -266,102 +266,123 @@
     "text": "Citation\ncitation(\"stratifyR\")\n\nReddy, K. G., & Khan, M. G. M. (2026). stratifyR: Optimal Stratification of Univariate Populations. R package version 2.1-0. https://cran.r-project.org/package=stratifyR\n\n\n\n\n\n\n\n\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR, and the development version is on GitHub: https://github.com/karunaredz/stratifyR.\nA methods paper, benchmarking all four solvers against the exact optimum and the classical methods, is being prepared for journal submission.\nWe would love to hear how you are using the package. Get in touch or leave a comment."
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html",
-    "href": "posts/fitverse-1.0-2/index.html",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html",
+    "href": "posts/fitverse-1.0-3/index.html",
+    "title": "FitVerse 1.0-3",
     "section": "",
-    "text": "Parametric Distribution Fitting in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"FitVerse\")  ·  library(FitVerse)\nFiguring out which distribution fits your data can take a while. Is it Gamma or Log-Normal? Maybe Weibull? Trying them one at a time is tedious, and eyeballing a histogram only gets you so far.\nFitVerse does the searching for you. Give it your data and it fits all 52 distribution families, estimates parameters using MLE, MOM, or L-moments, ranks every fit, runs four goodness-of-fit tests, and returns a clean summary with plots. One line of code."
+    "text": "Parametric Distribution Fitting in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"FitVerse\")  ·  library(FitVerse)\nFiguring out which distribution fits your data can take a while. Is it Gamma or Log-Normal? Maybe Weibull? Trying them one at a time is tedious, and eyeballing a histogram only gets you so far.\nFitVerse does the searching for you. Give it your data and it fits every distribution family that suits the chosen method, estimates the parameters by MLE, MOM or L-moments, ranks the fits, runs four goodness-of-fit tests, and returns a clean summary with plots. One line of code.\nVersion 1.0-3 is now on CRAN. The source code is on GitHub at https://github.com/karunaredz/FitVerse."
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#distributions",
-    "href": "posts/fitverse-1.0-2/index.html#distributions",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#installation",
+    "href": "posts/fitverse-1.0-3/index.html#installation",
+    "title": "FitVerse 1.0-3",
+    "section": "Installation",
+    "text": "Installation\n# From CRAN\ninstall.packages(\"FitVerse\")\n\n# Development version from GitHub\n# install.packages(\"remotes\")\nremotes::install_github(\"karunaredz/FitVerse\")"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-3/index.html#what-is-new-in-version-1.0-3",
+    "href": "posts/fitverse-1.0-3/index.html#what-is-new-in-version-1.0-3",
+    "title": "FitVerse 1.0-3",
+    "section": "What Is New in Version 1.0-3",
+    "text": "What Is New in Version 1.0-3\n\nsummary() now returns a fitverse_summary object with its own print() method. It shows the data summary, the best fit and the top ten models in the ranking.\nA new accessor, ranking(), returns the full ranking table, so you no longer need to reach into the fitted object.\nEvery function, including the internal helpers, now has its own help page.\nThe NAMESPACE is now generated from the code documentation, so the exports and S3 methods stay in step with the code.\nA replication script that runs the main examples ships with the package. Find it with system.file(\"replication.R\", package = \"FitVerse\")."
+  },
+  {
+    "objectID": "posts/fitverse-1.0-3/index.html#distributions",
+    "href": "posts/fitverse-1.0-3/index.html#distributions",
+    "title": "FitVerse 1.0-3",
     "section": "Distributions",
-    "text": "Distributions\nFitVerse covers 52 distribution families across five groups.\n\nSymmetric / UnboundedRight-Skewed (Positive)Heavy-TailedExtreme Value & HydrologicalBounded / Finite Support\n\n\nNormal\nLogistic\nCauchy\nLaplace\nStudent-t\nSkew-Normal\nGeneralised Normal\nAsymmetric Laplace\nJohnson SU\nNormal Inverse Gaussian\nGeneralised Hyperbolic\nTruncated Normal\n\n\nGamma\nLog-Normal\nExponential\nWeibull (2P)\nWeibull (3P)\nLog-Logistic\nInverse Gamma\nInverse Weibull\nParalogistic\nInverse Gaussian\nGeneralised Gamma\nGompertz\nBirnbaum-Saunders\nRayleigh\nHalf-Normal\nExponentiated Weibull\nGamma (3P)\nLog-Normal (3P)\nLindley\nExponentiated Exponential\nNakagami\n\n\nPareto\nBurr XII\nLomax (Pareto Type II)\nDagum\nGB2 (Generalised Beta of the Second Kind)\n\n\nGEV\nGumbel\nGPD\nPearson Type III\nLog-Pearson Type III\nGeneralised Logistic\nKappa-4\nWakeby\n\n\nBeta\nUniform\nTriangular\nRight Triangular\nPERT\nKumaraswamy"
+    "text": "Distributions\nFitVerse covers 52 distribution families in six groups. You can see the full list, and which methods each family supports, with fitverse_distributions().\n\nSymmetricAsymmetricRight-SkewedHeavy-TailedExtreme ValueBounded\n\n\nNormal\nLogistic\nLaplace\nStudent-t (Location-Scale)\nGeneralised Normal\nNormal Inverse Gaussian\nGeneralised Hyperbolic\nTruncated Normal\n\n\nSkew-Normal\nJohnson SU\nAsymmetric Laplace\n\n\nLog-Normal\nGamma\nExponential\nWeibull (2P)\nWeibull (3P)\nLog-Logistic\nInverse Gamma\nInverse Weibull\nParalogistic\nPearson Type III\nLog-Pearson Type III\nInverse Gaussian\nGeneralised Gamma\nGompertz\nBirnbaum-Saunders\nRayleigh\nHalf-Normal\nExponentiated Weibull\nGamma (3P)\nLog-Normal (3P)\nLindley\nExponentiated Exponential\nNakagami\n\n\nCauchy\nPareto\nBurr XII\nLomax (Pareto Type II)\nGB2 (Generalised Beta of the Second Kind)\nDagum\n\n\nGumbel\nGEV\nGeneralised Pareto\nGeneralised Logistic\nKappa-4\nWakeby\n\n\nBeta\nUniform\nTriangular\nRight Triangular\nPERT\nKumaraswamy\n\n\n\nd &lt;- fitverse_distributions()\nhead(d)\n#          Key        Name     Family Package MLE MOM LMOM\n# 1     normal      Normal  Symmetric   stats Yes Yes  Yes\n# 2   logistic    Logistic  Symmetric   stats Yes Yes  Yes\n# 3 skewnormal Skew-Normal Asymmetric      sn Yes   -    -"
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#estimation-methods",
-    "href": "posts/fitverse-1.0-2/index.html#estimation-methods",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#estimation-methods",
+    "href": "posts/fitverse-1.0-3/index.html#estimation-methods",
+    "title": "FitVerse 1.0-3",
     "section": "Estimation Methods",
-    "text": "Estimation Methods\nMLE — Maximum Likelihood\nMOM — Method of Moments\nLMOM — L-Moments\n\n\n\n\n\n\n\n\nMethod\nBest For\nNotes\n\n\n\n\nMLE\nMost situations\nFinds parameters that make observed data most probable\n\n\nMOM\nQuick estimates\nMatches theoretical to sample moments; faster than MLE\n\n\nLMOM\nHydrology; extreme values\nRobust to outliers; ideal for flood peaks, rainfall maxima\n\n\n\nRun all three at once with method = \"ALL\". FitVerse picks the overall best fit across all methods and distributions."
+    "text": "Estimation Methods\nMLE: Maximum Likelihood\nMOM: Method of Moments\nLMOM: L-Moments\n\n\n\n\n\n\n\n\n\nMethod\nFamilies\nBest For\nNotes\n\n\n\n\nMLE\n51\nMost situations\nFinds the parameters that make the observed data most probable\n\n\nMOM\n31\nQuick estimates\nMatches theoretical moments to sample moments\n\n\nLMOM\n15\nHydrology and extreme values\nRobust to outliers; well suited to flood peaks and rainfall maxima\n\n\n\nWakeby is fitted by L-moments only. To run all three methods at once, use method = c(\"MLE\", \"MOM\", \"LMOM\"). FitVerse then ranks every distribution and method pair together and picks the overall best fit."
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#core-workflow",
-    "href": "posts/fitverse-1.0-2/index.html#core-workflow",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#core-workflow",
+    "href": "posts/fitverse-1.0-3/index.html#core-workflow",
+    "title": "FitVerse 1.0-3",
     "section": "Core Workflow",
-    "text": "Core Workflow\n\nQuick Start\nlibrary(FitVerse)\n\n# Built-in precip dataset: annual precipitation, 70 US cities\nx &lt;- as.numeric(precip)\n\n# Fit all 52 distributions by MLE — ranked by AIC\nfit &lt;- fitverse(x, xlab = \"Annual precipitation (inches)\")\n\n\n\n\n\n\nNoteWhat happens in one call\n\n\n\nfitverse() fits all 52 distributions, estimates parameters, ranks by AIC, runs 4 GoF tests, and produces a two-panel diagnostic plot. It all happens automatically.\n\n\n\n\nKey Arguments\nfitverse(x,\n  dists       = \"all\",    # subset: c(\"gamma\",\"lognormal\",\"gev\") or \"all\"\n  method      = \"MLE\",    # \"MLE\", \"MOM\", \"LMOM\", or \"ALL\"\n  criterion   = \"AIC\",    # ranking criterion: \"AIC\" or \"BIC\"\n  xlab        = \"x\",      # axis label for plots and reports\n  plot        = TRUE,     # produce diagnostic plot?\n  interactive = FALSE,    # plotly interactive? (needs plotly)\n  top_n       = 3,        # density curves to overlay\n  verbose     = TRUE)     # print ranked table to console?\n\n\nThe Return Object\nfit$best_fit     # best-fit distribution: params, AIC/BIC, GoF stats\nfit$ranking      # ranked table of all 52 distributions\nfit$all_fits     # full list of every fitted model object\nfit$data         # original data vector\nfit$data_summary # n, mean, sd, skewness, kurtosis\n\n\nS3 Methods\n\nprint(fit) — ranked table + best-fit parameters\nsummary(fit) — full goodness-of-fit table\nplot(fit) — two-panel diagnostic plot\ncoef(fit) — best-fit parameter vector\nlogLik(fit)   AIC(fit)   BIC(fit)\nnobs(fit) — sample size n\nresiduals(fit) — probability residuals\nfitted(fit) — fitted densities at data points\nconfint(fit) — Wald confidence intervals for parameters\nvcov(fit) — variance-covariance matrix\nsave_plot(fit, \"fig.pdf\", dpi = 600) — save plot to file"
+    "text": "Core Workflow\n\nQuick Start\nlibrary(FitVerse)\n\n# Built-in precip data: average annual precipitation in 70 US cities\nx &lt;- as.numeric(precip)\n\n# Fit every family by MLE and rank the fits by AIC\nfit &lt;- fitverse(x, xlab = \"Annual precipitation (inches)\")\n\nhead(ranking(fit)[, c(\"Rank\", \"Distribution\", \"Method\", \"AIC\", \"Delta_AIC\", \"KS_p\", \"AD_p\")], 5)\n#  Rank          Distribution Method      AIC Delta_AIC   KS_p   AD_p\n#     1                 Dagum    MLE 564.7508    0.0000 0.4423 0.5683\n#     2                  PERT    MLE 565.7535    1.0027 0.1349 0.2269\n#     3      Truncated Normal    MLE 566.2037    1.4529 0.2060 0.1311\n#     4     Generalised Gamma    MLE 566.5333    1.7825 0.3460 0.4548\n#     5 Exponentiated Weibull    MLE 566.7180    1.9672 0.3368 0.4421\n\n\n\n\n\n\nNoteWhat happens in one call\n\n\n\nfitverse() fits every family that supports the chosen method, estimates the parameters, ranks the fits by AIC, runs four goodness-of-fit tests, and draws a two-panel diagnostic plot.\n\n\n\n\nKey Arguments\nfitverse(x,\n  dists       = \"all\",    # a subset, e.g. c(\"gamma\", \"lognormal\", \"gev\"), or \"all\"\n  method      = \"MLE\",    # \"MLE\", \"MOM\", \"LMOM\", or several, e.g. c(\"MLE\", \"LMOM\")\n  criterion   = \"AIC\",    # ranking criterion: \"AIC\" or \"BIC\"\n  xlab        = \"x\",      # axis label for plots and reports\n  plot        = TRUE,     # draw the diagnostic plot?\n  interactive = FALSE,    # interactive plotly version? (needs plotly)\n  top_n       = 3,        # number of density curves to overlay\n  verbose     = TRUE)     # print the results to the console?\n\n\nWorking With the Result\nranking(fit)          # ranked table of all fitted models\ncoef(fit)             # best-fit parameter estimates\nfit$best_fit          # best fit: parameters, log-likelihood, AIC, BIC, GoF tests\nfit$all_fits          # every fitted model\nfit$data_summary      # n, mean, sd, skewness, kurtosis, range\n\n\nS3 Methods\n\nprint(fit): best-fit distribution, parameters and GoF tests\nsummary(fit): data summary, best fit and the top ten models\nplot(fit): two-panel diagnostic plot\nranking(fit): full ranking table\ncoef(fit): best-fit parameter vector\nlogLik(fit)   AIC(fit)   BIC(fit)\nas.list(fit)   to_json(fit): for use in other tools and web apps\nsave_plot(fit, \"fig.pdf\", dpi = 600): save the plot to a file"
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#diagnostic-plot",
-    "href": "posts/fitverse-1.0-2/index.html#diagnostic-plot",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#diagnostic-plot",
+    "href": "posts/fitverse-1.0-3/index.html#diagnostic-plot",
+    "title": "FitVerse 1.0-3",
     "section": "Diagnostic Plot",
-    "text": "Diagnostic Plot\nEvery call produces a two-panel diagnostic plot by default.\nLeft panel (Density): histogram with the top top_n fitted density curves overlaid. The best-fit distribution is highlighted and its PDF formula is shown on the figure.\nRight panel (Q-Q plot): theoretical quantiles of the best-fit distribution plotted against sample quantiles. Points close to the diagonal mean a good fit.\n# Interactive version (needs plotly)\nfit &lt;- fitverse(x, interactive = TRUE)\n\n# Save without displaying\nsave_plot(fit, file = \"precipitation_fit.png\", dpi = 600)\nsave_plot(fit, file = \"precipitation_fit.pdf\")   # PDF or SVG by extension\n\n\n\n\n\n\nTipL-Moment Ratio Diagram\n\n\n\nFor hydrological and extreme-value work, use the LMRD as an exploratory tool before fitting. It plots sample L-skewness and L-kurtosis against theoretical curves for several distribution families.\nlmrd(x)"
+    "text": "Diagnostic Plot\nEvery call draws a two-panel diagnostic plot by default.\nLeft panel (density): a histogram with the top top_n fitted density curves overlaid. The best-fit distribution is highlighted and its PDF formula is shown on the figure.\nRight panel (Q-Q plot): theoretical quantiles of the best-fit distribution against the sample quantiles. Points close to the diagonal mean a good fit.\n# Interactive version (needs plotly)\nfit &lt;- fitverse(x, interactive = TRUE)\n\n# Save without displaying\nsave_plot(fit, file = \"precipitation_fit.png\", dpi = 600)\nsave_plot(fit, file = \"precipitation_fit.pdf\")   # PNG, PDF or SVG by extension\n\n\n\n\n\n\nTipL-Moment Ratio Diagram\n\n\n\nFor hydrological and extreme-value work, use the L-moment ratio diagram as an exploratory tool before fitting. It plots the sample L-skewness and L-kurtosis against the theoretical curves of several families.\nlmrd(x)"
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#goodness-of-fit-tests",
-    "href": "posts/fitverse-1.0-2/index.html#goodness-of-fit-tests",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#goodness-of-fit-tests",
+    "href": "posts/fitverse-1.0-3/index.html#goodness-of-fit-tests",
+    "title": "FitVerse 1.0-3",
     "section": "Goodness-of-Fit Tests",
-    "text": "Goodness-of-Fit Tests\nFitVerse runs four GoF tests automatically on every distribution:\n\n\n\nTest\nAbbrev.\nSensitive To\n\n\n\n\nKolmogorov-Smirnov\nKS\nOverall CDF deviation\n\n\nAnderson-Darling\nAD\nTail behaviour (strong)\n\n\nCramer-von Mises\nCvM\nOverall CDF deviation\n\n\nChi-Squared\nχ²\nBinned frequency discrepancy\n\n\n\nfit$best_fit$gof                          # GoF stats for best fit\ntbl &lt;- compare_dists(x, method = \"MLE\")  # ranked table only, no plot\nhead(tbl, 10)"
+    "text": "Goodness-of-Fit Tests\nFitVerse runs four goodness-of-fit tests on every fitted distribution:\n\n\n\nTest\nAbbrev.\nSensitive To\n\n\n\n\nKolmogorov-Smirnov\nKS\nOverall CDF deviation\n\n\nAnderson-Darling\nAD\nTail behaviour (strong)\n\n\nCramer-von Mises\nCvM\nOverall CDF deviation\n\n\nChi-Squared\nχ²\nBinned frequency discrepancy\n\n\n\nfit$best_fit$gof                                          # GoF tests for the best fit\ntbl &lt;- compare_dists(x, method = \"MLE\", verbose = FALSE)  # ranking table only, no plot\nhead(tbl, 10)"
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#probability-tools",
-    "href": "posts/fitverse-1.0-2/index.html#probability-tools",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#probability-tools",
+    "href": "posts/fitverse-1.0-3/index.html#probability-tools",
+    "title": "FitVerse 1.0-3",
     "section": "Probability Tools",
-    "text": "Probability Tools\ndfitverse(30,   fit)   # density (PDF) at x = 30\npfitverse(40,   fit)   # P(X ≤ 40)  — CDF\nqfitverse(0.95, fit)   # 95th percentile\nrfitverse(100,  fit)   # simulate 100 values from fitted distribution\nWorks identically for all 52 distributions — no need to know the underlying d/p/q/r function names."
+    "text": "Probability Tools\ndfitverse(30,   fit)   # density (PDF) at x = 30\npfitverse(40,   fit)   # P(X &lt;= 40), the CDF\nqfitverse(0.95, fit)   # 95th percentile\nrfitverse(100,  fit)   # simulate 100 values from the fitted distribution\nThese work the same way for all 52 families, so you do not need to know the underlying d/p/q/r function names."
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#bootstrap-cis-return-levels",
-    "href": "posts/fitverse-1.0-2/index.html#bootstrap-cis-return-levels",
-    "title": "FitVerse",
-    "section": "Bootstrap CIs & Return Levels",
-    "text": "Bootstrap CIs & Return Levels\n\nParameter CIsReturn LevelsBootstrap CIs for Return Levels\n\n\nboot &lt;- bootstrap_ci(fit, R = 500)\nprint(boot)\n# shape: [4.12, 6.10]   rate: [0.11, 0.17]\n\n\nA T-year return level is the value expected to be exceeded once every T years on average.\nrl &lt;- return_level(fit, T = c(10, 50, 100))\nprint(rl)\n# T =  10:  49.2  [43.1, 56.2]\n# T =  50:  60.9  [53.4, 69.8]\n# T = 100:  65.4  [57.0, 75.9]\n\n\nboot_rl &lt;- bootstrap_ci(fit, R = 500,\n                        return_levels = c(10, 50, 100))\nprint(boot_rl)"
+    "objectID": "posts/fitverse-1.0-3/index.html#bootstrap-cis-and-return-levels",
+    "href": "posts/fitverse-1.0-3/index.html#bootstrap-cis-and-return-levels",
+    "title": "FitVerse 1.0-3",
+    "section": "Bootstrap CIs and Return Levels",
+    "text": "Bootstrap CIs and Return Levels\nHere we use the annual maximum flows of the Rewa River at Navolau, Fiji (75 years), which ship with the package.\nq &lt;- read.csv(system.file(\"extdata\", \"annual_max_flows.csv\", package = \"FitVerse\"),\n              comment.char = \"#\")$peak_flow_m3s\n\nff &lt;- fitverse(q, dists = c(\"gev\", \"gumbel\", \"pearson3\", \"glo\"),\n               method = \"LMOM\", xlab = \"Annual maximum flow (m3/s)\")\ncoef(ff)\n#      loc    scale\n# 432.0250 104.7218\nThe Gumbel distribution fits best here.\n\nReturn LevelsBootstrap CIs\n\n\nA T-year return level is the value exceeded once every T years on average.\nreturn_level(ff, return_periods = c(10, 50, 100))\n#   return_period exceedance_prob return_level\n# 1            10            0.10     667.6874\n# 2            50            0.02     840.6429\n# 3           100            0.01     913.7607\n\n\nboot &lt;- bootstrap_ci(ff, B = 500, return_periods = c(10, 50, 100), seed = 2026)\nboot\n# Parameters:\n#  param estimate   lower  upper\n#    loc   432.02 406.934 461.64\n#  scale   104.72  84.378 123.48\n#\n# Return levels:\n#    T return_level  lower   upper\n#   10       667.69 614.20  723.68\n#   50       840.64 754.72  927.34\n#  100       913.76 814.35 1013.84\n\n\n\nTo choose a threshold for a peaks-over-threshold analysis, ev_threshold(q) draws the mean residual life plot and the stability plots of the generalised Pareto parameters."
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#batch-fitting",
-    "href": "posts/fitverse-1.0-2/index.html#batch-fitting",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#grouped-data",
+    "href": "posts/fitverse-1.0-3/index.html#grouped-data",
+    "title": "FitVerse 1.0-3",
+    "section": "Grouped Data",
+    "text": "Grouped Data\nWhen you only have a frequency table, use fitverse_grouped() with the class midpoints and counts, or with the class limits.\ng &lt;- read.csv(system.file(\"extdata\", \"rainfall_grouped.csv\", package = \"FitVerse\"),\n              comment.char = \"#\")\ngf &lt;- fitverse_grouped(midpoints = g$midpoint, counts = g$count,\n                       dists = c(\"gev\", \"gumbel\", \"gamma\", \"lognormal\", \"weibull\"),\n                       xlab = \"Annual maximum rainfall (mm)\")\ngf"
+  },
+  {
+    "objectID": "posts/fitverse-1.0-3/index.html#batch-fitting",
+    "href": "posts/fitverse-1.0-3/index.html#batch-fitting",
+    "title": "FitVerse 1.0-3",
     "section": "Batch Fitting",
-    "text": "Batch Fitting\nresults &lt;- fitverse_batch(my_data, method = \"MLE\")\nresults$summary   # best distribution + parameters for each column\nFits all numeric columns of a data frame at once. Useful when you want a quick distributional overview across many variables."
+    "text": "Batch Fitting\nresults &lt;- fitverse_batch(my_data, method = \"MLE\")\nresults$summary   # best distribution and its parameters for each column\nThis fits every numeric column of a data frame in one go and skips the others. It is useful when you want a quick distributional overview of many variables."
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#report-generation",
-    "href": "posts/fitverse-1.0-2/index.html#report-generation",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#report-generation",
+    "href": "posts/fitverse-1.0-3/index.html#report-generation",
+    "title": "FitVerse 1.0-3",
     "section": "Report Generation",
-    "text": "Report Generation\ngenerate_report(fit,\n  title       = \"Precipitation Data: Distribution Fitting\",\n  author      = \"Karuna Reddy\",\n  output_file = \"report.html\")   # or \"report.pdf\"\n\n# Include bootstrap results\nboot &lt;- bootstrap_ci(fit, R = 500)\ngenerate_report(fit, boot = boot, output_file = \"report.html\")"
+    "text": "Report Generation\ngenerate_report(fit,\n  title       = \"Precipitation Data: Distribution Fitting\",\n  author      = \"Karuna Reddy\",\n  output_file = \"report.html\")   # or \"report.pdf\"\n\n# Include the bootstrap results\nboot &lt;- bootstrap_ci(fit, B = 500)\ngenerate_report(fit, boot = boot, output_file = \"report.html\")"
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#shiny-app",
-    "href": "posts/fitverse-1.0-2/index.html#shiny-app",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#shiny-app",
+    "href": "posts/fitverse-1.0-3/index.html#shiny-app",
+    "title": "FitVerse 1.0-3",
     "section": "Shiny App",
-    "text": "Shiny App\nFitVerseApp()\nUpload a CSV, choose distributions, switch between MLE/MOM/LMOM, explore plots interactively, and download a report — no code needed."
+    "text": "Shiny App\nFitVerseApp()\nUpload a CSV file, choose the distributions, switch between MLE, MOM and L-moments, explore the plots, and download a report, all without writing any code. The example data in the package are ready to upload: system.file(\"extdata\", package = \"FitVerse\")."
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#who-is-fitverse-for",
-    "href": "posts/fitverse-1.0-2/index.html#who-is-fitverse-for",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#who-is-fitverse-for",
+    "href": "posts/fitverse-1.0-3/index.html#who-is-fitverse-for",
+    "title": "FitVerse 1.0-3",
     "section": "Who Is FitVerse For?",
-    "text": "Who Is FitVerse For?\n\n  🌊 HydrologyFit GEV, Gumbel, GPD, Pearson III to flood peaks and rainfall maxima. LMOM + return levels built in.\n  📋 Actuarial ScienceFit Pareto, Burr, GB2, Log-Normal to insurance claims, with full heavy-tail coverage.\n  📊 Survey SamplingIdentify the distribution of a continuous survey variable before model-based estimation or simulation.\n  🎓 TeachingThe Shiny app and clean output let students explore distribution fitting visually without writing code.\n  🔬 Research52 distributions · 3 methods · 4 GoF tests · Bootstrap CIs · report generation — all in one package."
+    "text": "Who Is FitVerse For?\n\n  🌊 HydrologyFit GEV, Gumbel, GPD and Pearson III to flood peaks and rainfall maxima. L-moments and return levels are built in.\n  📋 Actuarial ScienceFit Pareto, Burr, GB2 and Log-Normal to insurance claims, with full heavy-tail coverage.\n  📊 Survey SamplingIdentify the distribution of a continuous survey variable before model-based estimation or simulation.\n  🎓 TeachingThe Shiny app and clean output let students explore distribution fitting visually without writing code.\n  🔬 Research52 distributions, 3 methods, 4 GoF tests, bootstrap CIs and reports, all in one package."
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#quick-reference",
-    "href": "posts/fitverse-1.0-2/index.html#quick-reference",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#quick-reference",
+    "href": "posts/fitverse-1.0-3/index.html#quick-reference",
+    "title": "FitVerse 1.0-3",
     "section": "Quick Reference",
-    "text": "Quick Reference\n\n\n\nFunction\nPurpose\n\n\n\n\nfitverse(x)\nFit all 52 distributions, rank by AIC\n\n\ncompare_dists(x)\nRanked table only (no plot)\n\n\nlmrd(x)\nL-Moment Ratio Diagram\n\n\nbootstrap_ci(fit, R)\nBootstrap CIs for parameters\n\n\nreturn_level(fit, T)\nReturn level estimates\n\n\ndfitverse(x, fit)\nDensity (PDF)\n\n\npfitverse(q, fit)\nCDF\n\n\nqfitverse(p, fit)\nQuantile function\n\n\nrfitverse(n, fit)\nSimulate from fitted distribution\n\n\nfitverse_batch(df)\nFit all numeric columns\n\n\ngenerate_report(fit)\nHTML / PDF analysis report\n\n\nFitVerseApp()\nLaunch interactive Shiny app\n\n\nsave_plot(fit, file)\nSave diagnostic plot"
+    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nfitverse(x)\nFit and rank the distributions\n\n\nranking(fit)\nFull ranking table\n\n\ncompare_dists(x)\nRanking table only (no plot)\n\n\nfitverse_distributions()\nList the 52 families and their methods\n\n\nlmrd(x)\nL-moment ratio diagram\n\n\nbootstrap_ci(fit, B)\nBootstrap CIs for parameters and return levels\n\n\nreturn_level(fit, return_periods)\nReturn level estimates\n\n\nev_threshold(x)\nThreshold choice for peaks over threshold\n\n\nfitverse_grouped(...)\nFit grouped (frequency table) data\n\n\ndfitverse(x, fit)\nDensity (PDF)\n\n\npfitverse(q, fit)\nCDF\n\n\nqfitverse(p, fit)\nQuantile function\n\n\nrfitverse(n, fit)\nSimulate from the fitted distribution\n\n\nfitverse_batch(df)\nFit all numeric columns\n\n\ngenerate_report(fit)\nHTML or PDF analysis report\n\n\nFitVerseApp()\nLaunch the interactive Shiny app\n\n\nsave_plot(fit, file)\nSave the diagnostic plot"
   },
   {
-    "objectID": "posts/fitverse-1.0-2/index.html#citation",
-    "href": "posts/fitverse-1.0-2/index.html#citation",
-    "title": "FitVerse",
+    "objectID": "posts/fitverse-1.0-3/index.html#citation",
+    "href": "posts/fitverse-1.0-3/index.html#citation",
+    "title": "FitVerse 1.0-3",
     "section": "Citation",
-    "text": "Citation\ncitation(\"FitVerse\")\n\nReddy, K. G., & Khan, M. G. M. (2026). FitVerse: Parametric Distribution Fitting for R. R package version 1.0-2. https://cran.r-project.org/package=FitVerse\n\n\n\n\n\n\n\n\nFitVerse is on CRAN: https://cran.r-project.org/package=FitVerse\nWe would love to hear how you are using it. Leave a comment or get in touch directly."
+    "text": "Citation\ncitation(\"FitVerse\")\n\nReddy, K. G., & Khan, M. G. M. (2026). FitVerse: Parametric Distribution Fitting and Analysis. R package version 1.0-3. https://CRAN.R-project.org/package=FitVerse\n\n\n\n\n\n\n\n\nFitVerse is on CRAN: https://CRAN.R-project.org/package=FitVerse Source code and issues: https://github.com/karunaredz/FitVerse We would love to hear how you are using it. Leave a comment or get in touch directly."
   },
   {
     "objectID": "posts/clusta-1.0-1/index.html",
@@ -487,6 +508,6 @@
     "href": "index.html",
     "title": "Blog",
     "section": "",
-    "text": "stratifyR 2.1-0\n\n\nOptimal Survey Stratification in R\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\nCRAN\n\n\n\nDynamic programming · Exact solver · Full variance and take-all strata · COBYLA · GLOBAL · Accessor functions · Design efficiency · Shiny app · v2.1-0\n\n\n\n\n\nNov 14, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nclusta 1.0-1\n\n\nFrom ordered data to non-convex clusters\n\n\n\nR\n\nclusta\n\nclustering\n\ndynamic programming\n\n\n\nA practical guide to dynamic-programming clustering, S-MPDP, diagnostics, benchmark data, figures, and the Shiny app\n\n\n\n\n\nOct 30, 2026\n\n\nKaruna G. Reddy, Gabiriele Bulivou and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nmultistrata\n\n\nMultivariate Optimum Stratification and Sample Allocation for Surveys\n\n\n\nR\n\nmultistrata\n\nsurvey sampling\n\nstratification\n\nCRAN\n\n\n\nJoint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1\n\n\n\n\n\nOct 30, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nFitVerse\n\n\nParametric Distribution Fitting in R\n\n\n\nR\n\nFitVerse\n\ndistributions\n\nCRAN\n\n\n\n52 distributions · MLE / MOM / L-moments · GoF tests · Bootstrap CI · Shiny app · v1.0-2\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
+    "text": "FitVerse 1.0-3\n\n\nParametric Distribution Fitting in R\n\n\n\nR\n\nFitVerse\n\ndistributions\n\nCRAN\n\n\n\n52 distributions · MLE / MOM / L-moments · GoF tests · Bootstrap CI · Return levels · Grouped data · Shiny app · v1.0-3\n\n\n\n\n\nNov 14, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nstratifyR 2.1-0\n\n\nOptimal Survey Stratification in R\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\nCRAN\n\n\n\nDynamic programming · Exact solver · Full variance and take-all strata · COBYLA · GLOBAL · Accessor functions · Design efficiency · Shiny app · v2.1-0\n\n\n\n\n\nNov 14, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nclusta 1.0-1\n\n\nFrom ordered data to non-convex clusters\n\n\n\nR\n\nclusta\n\nclustering\n\ndynamic programming\n\n\n\nA practical guide to dynamic-programming clustering, S-MPDP, diagnostics, benchmark data, figures, and the Shiny app\n\n\n\n\n\nOct 30, 2026\n\n\nKaruna G. Reddy, Gabiriele Bulivou and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nmultistrata\n\n\nMultivariate Optimum Stratification and Sample Allocation for Surveys\n\n\n\nR\n\nmultistrata\n\nsurvey sampling\n\nstratification\n\nCRAN\n\n\n\nJoint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1\n\n\n\n\n\nOct 30, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
   }
 ]
