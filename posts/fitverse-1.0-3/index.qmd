@@ -107,6 +107,7 @@ remotes::install_github("karunaredz/FitVerse")
 
 - `summary()` now returns a `fitverse_summary` object with its own `print()` method. It shows the data summary, the best fit and the top ten models in the ranking.
 - A new accessor, `ranking()`, returns the full ranking table, so you no longer need to reach into the fitted object.
+- The internal helpers `get_dist_entry()` and `print_data_summary()` are no longer exported.
 - Every function, including the internal helpers, now has its own help page.
 - The NAMESPACE is now generated from the code documentation, so the exports and S3 methods stay in step with the code.
 - A replication script that runs the main examples ships with the package. Find it with `system.file("replication.R", package = "FitVerse")`.
