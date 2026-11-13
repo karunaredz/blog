@@ -10,7 +10,765 @@
 <atom:link href="https://karunaredz.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>R packages and notes on survey sampling, stratification, optimisation and data science.</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Thu, 29 Oct 2026 11:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 13 Nov 2026 11:00:00 GMT</lastBuildDate>
+<item>
+  <title>stratifyR 2.1-0</title>
+  <dc:creator>Karuna G. Reddy and M. G. M. Khan</dc:creator>
+  <link>https://karunaredz.github.io/blog/posts/stratifyR-2.1-0/</link>
+  <description><![CDATA[ 
+
+
+
+
+<style>
+.pkg-hero {
+  display: flex; align-items: center; gap: 28px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #0D2B6B 0%, #1565C0 60%, #1976D2 100%);
+  border-radius: 10px; margin-bottom: 28px; color: white;
+}
+.pkg-hero img { width: 110px; height: auto; flex-shrink: 0; border-radius: 6px; }
+.pkg-hero h1 { margin: 0 0 4px 0; font-size: 2.4rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
+.pkg-hero .subtitle { font-size: 1.05rem; color: #B3E5FC; margin: 0 0 10px 0; }
+.pkg-hero .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pkg-hero .badges a img, .pkg-hero .badges img { height: 22px; vertical-align: middle; border-radius: 0; width: auto; }
+.pkg-hero .install-box {
+  background: rgba(0,0,0,0.35); border-radius: 6px; padding: 10px 14px;
+  font-family: monospace; font-size: 0.9rem; color: #80DEEA;
+  margin-top: 10px; border-left: 3px solid #FFD54F;
+}
+.fn-card {
+  border-left: 4px solid #1565C0; padding: 12px 16px;
+  background: #f0f7ff; border-radius: 0 6px 6px 0; margin: 12px 0; line-height: 1.9;
+}
+.fn-card code { background: #BBDEFB; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
+.solver-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 16px 0; }
+.solver-card { border-radius: 8px; padding: 14px 16px; }
+.solver-dp   { background: #e8f5e9; border-top: 4px solid #2E7D32; }
+.solver-cob  { background: #e3f2fd; border-top: 4px solid #1565C0; }
+.solver-glob { background: #fff3e0; border-top: 4px solid #E65100; }
+.solver-exact { background: #f3e5f5; border-top: 4px solid #6A1B9A; }
+.solver-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; }
+.solver-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
+.use-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.use-card { border-radius: 8px; padding: 14px; background: white; border: 1px solid #BBDEFB; }
+.use-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; color: #1565C0; }
+.use-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
+.new-item { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; }
+.new-item .tag { background: #1565C0; color: white; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+</style>
+
+<div class="pkg-hero">
+  <img src="https://karunaredz.github.io/blog/posts/stratifyR-2.1-0/stratifyr-logo.png" alt="stratifyR logo">
+  <div>
+    <h1>stratifyR 2.1-0</h1>
+    <div class="subtitle">Optimal Survey Stratification in R</div>
+    <div class="badges">
+      <a href="https://cran.r-project.org/package=stratifyR"><img src="https://www.r-pkg.org/badges/version/stratifyR" alt="CRAN"></a>
+      <a href="https://cran.r-project.org/package=stratifyR"><img src="https://cranlogs.r-pkg.org/badges/stratifyR" alt="Downloads"></a>
+      <img src="https://img.shields.io/badge/license-GPL%20(%3E%3D%203)-blue.svg" alt="GPL (>= 3)">
+      <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1+">
+    </div>
+    <div class="install-box">
+      install.packages("stratifyR") &nbsp;·&nbsp; remotes::install_github("karunaredz/stratifyR")
+    </div>
+  </div>
+</div>
+<p>When your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.</p>
+<p><strong>stratifyR 2.1-0</strong> works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why stratification matters
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For skewed populations, optimal stratification can cut the variance a great deal at the same total sample size. The gain depends entirely on where the boundaries sit. stratifyR finds the best boundaries for your data.</p>
+</div>
+</div>
+<hr>
+<section id="quick-start" class="level2">
+<h2 class="anchored" data-anchor-id="quick-start">Quick Start</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(stratifyR)</span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data</span>(sugarcane)   <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 13,894 cane growers in Fiji</span></span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 4 strata · total sample 500 · Dynamic Programming solver</span></span>
+<span id="cb1-5">res <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dp"</span>)</span>
+<span id="cb1-6"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(res)</span></code></pre></div></div>
+<p>One call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.</p>
+<p>New in 2.1-0, simple functions take the results out for you, so you never need to know how the result is stored:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">boundaries</span>(res)            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># optimal stratum boundaries</span></span>
+<span id="cb2-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">allocation</span>(res)            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># one row per stratum: Nh, Wh, Sh, WhSh, nh and fh</span></span>
+<span id="cb2-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">objective</span>(res)             <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># objective function, sum of Wh*Sh (lower = better)</span></span>
+<span id="cb2-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">variance</span>(res)              <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># variance of the estimated mean, with the finite population correction</span></span>
+<span id="cb2-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">fitted_distribution</span>(res)   <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># fitted distribution and its parameters</span></span>
+<span id="cb2-6"></span>
+<span id="cb2-7">s <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(res)          <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># a summary object; print it when you want to see it</span></span>
+<span id="cb2-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.data.frame</span>(s)           <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># the summary table as a data frame</span></span></code></pre></div></div>
+<hr>
+</section>
+<section id="distribution-fitting-step" class="level2">
+<h2 class="anchored" data-anchor-id="distribution-fitting-step">Distribution Fitting Step</h2>
+<p>Before placing any boundaries, <code>strata.data()</code> automatically fits your variable’s distribution from these candidates:</p>
+<p><code>Normal</code> · <code>Log-Normal</code> · <code>Gamma</code> · <code>Weibull</code> · <code>Exponential</code> · <code>Cauchy</code> · <code>Uniform</code> · <code>Pareto</code> · <code>Triangular</code> · <code>Right-Triangular</code></p>
+<p>The fitted distribution is used by the Dynamic Programming solver to compute each stratum’s contribution exactly. Since 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Already know the distribution? Use <code>strata.distr()</code> to supply it directly. No data needed (see Design Without Data).</p>
+</div>
+</div>
+<hr>
+</section>
+<section id="four-solvers" class="level2">
+<h2 class="anchored" data-anchor-id="four-solvers">Four Solvers</h2>
+<div class="solver-grid">
+  <div class="solver-card solver-dp">
+    <h4 class="anchored">Dynamic Programming</h4>
+    <p><code>method = "dp"</code><br>The default. <strong>Globally optimal</strong> on a fine grid for the fitted distribution, followed by a short local refinement that can only improve the answer.</p>
+  </div>
+  <div class="solver-card solver-exact">
+    <h4 class="anchored">EXACT</h4>
+    <p><code>method = "exact"</code><br>Dynamic programming on the data themselves. Returns the <strong>best possible partition of your sample</strong>. Exact for up to 20,000 distinct cut points.</p>
+  </div>
+  <div class="solver-card solver-cob">
+    <h4 class="anchored">COBYLA</h4>
+    <p><code>method = "cobyla"</code><br>Fast multi-start solver. One start comes from a quick coarse exact search, so it copes well with very skewed data. Best for interactive use.</p>
+  </div>
+  <div class="solver-card solver-glob">
+    <h4 class="anchored">GLOBAL</h4>
+    <p><code>method = "global"</code><br>Two phases: a broad DIRECT-L search on the rank scale, then a local refinement. A safe, fast choice for skewed data.</p>
+  </div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">dp   <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dp"</span>)</span>
+<span id="cb3-2">ex   <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"exact"</span>)</span>
+<span id="cb3-3">cob  <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cobyla"</span>)</span>
+<span id="cb3-4">glob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"global"</span>)</span></code></pre></div></div>
+<hr>
+</section>
+<section id="full-variance-and-a-take-all-stratum" class="level2">
+<h2 class="anchored" data-anchor-id="full-variance-and-a-take-all-stratum">Full Variance and a Take-All Stratum</h2>
+<p>The usual objective, the sum of <img src="https://latex.codecogs.com/png.latex?W_h%20S_h">, ignores the finite population correction, and Neyman allocation can ask for more units than a stratum holds. Both matter when your sample is a large part of the population, or when a few very large units sit at the top of the range, as in many business and farm surveys.</p>
+<p>The exact solver has two options for these cases:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># minimise the full variance, including the finite population correction</span></span>
+<span id="cb4-2">fv <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>,</span>
+<span id="cb4-3">                  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"exact"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">fpc =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb4-4"></span>
+<span id="cb4-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># also let the top stratum be sampled completely (a take-all stratum)</span></span>
+<span id="cb4-6">ta <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>,</span>
+<span id="cb4-7">                  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"exact"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">takeall =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb4-8"></span>
+<span id="cb4-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">default =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">variance</span>(ex), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">fpc =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">variance</span>(fv), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">takeall =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">variance</span>(ta))</span>
+<span id="cb4-10"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(ta)   <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># shows the take-all stratum, if one is chosen</span></span></code></pre></div></div>
+<p>With <code>fpc = TRUE</code> the minimum is certified when the bound is reached. With <code>takeall = TRUE</code> every size of take-all stratum is tried together with the other boundaries. <code>variance()</code> is computed from the final allocation, so you can compare the designs directly and keep the smallest.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>When to use it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If n/N is not small, or the top stratum looks over-allocated, use <code>method = "exact", takeall = TRUE</code>. In our benchmark of 65 settings it gave the smallest achieved variance every time, in about 12 seconds in median.</p>
+</div>
+</div>
+<hr>
+</section>
+<section id="visualising-the-design" class="level2">
+<h2 class="anchored" data-anchor-id="visualising-the-design">Visualising the Design</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">2D Density Plot</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">3D Cost Surface</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" aria-controls="tabset-1-3" aria-selected="false" href="">Boundary Explorer</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<p>Histogram with fitted density curve and colour-coded strata shading. Immediately shows where the boundaries fall and how the data mass is split.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(res)</span></code></pre></div></div>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<p>Interactive plotly surface showing how the objective function changes as boundaries move. Reveals that the optimum sits in a well.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(res, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"3d"</span>)</span></code></pre></div></div>
+</div>
+<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
+<p>One slider per interior boundary. Drag it and the objective function updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(res, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"interactive"</span>)</span></code></pre></div></div>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="design-efficiency-report" class="level2">
+<h2 class="anchored" data-anchor-id="design-efficiency-report">Design Efficiency Report</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">cd <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">compare_designs</span>(res)</span>
+<span id="cb8-2">cd</span></code></pre></div></div>
+<p>Compares three designs at the same sample size: <strong>Simple Random Sampling</strong>, <strong>Proportional Allocation</strong>, and <strong>Optimal Neyman Allocation</strong>. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Reading the report
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The equivalent SRS size tells you how many units a simple random sample would need to match the precision of your stratified design. On skewed data such as the sugarcane production, it is many times larger than the stratified sample.</p>
+</div>
+</div>
+<hr>
+</section>
+<section id="choosing-the-number-of-strata" class="level2">
+<h2 class="anchored" data-anchor-id="choosing-the-number-of-strata">Choosing the Number of Strata</h2>
+<p>More strata always lower the objective function, but the gains level off quickly. Scan a range and look for the elbow:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> (L <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>) {</span>
+<span id="cb9-2">  r <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> L, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cobyla"</span>)</span>
+<span id="cb9-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">cat</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"L ="</span>, L, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"  objective ="</span>, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">round</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">objective</span>(r), <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb9-4">}</span></code></pre></div></div>
+<p>The Shiny app does this automatically and marks the recommended stratum count on the curve.</p>
+<hr>
+</section>
+<section id="design-without-data" class="level2">
+<h2 class="anchored" data-anchor-id="design-without-data">Design Without Data</h2>
+<p>You can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Household income survey: log-normal, 20,000 units, n = 1,000</span></span>
+<span id="cb10-2">g <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.distr</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">initval =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dist =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">119500</span>,</span>
+<span id="cb10-3">                  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">distr =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"lnorm"</span>,</span>
+<span id="cb10-4">                  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">params =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">meanlog =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">9.616</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sdlog =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.703</span>),</span>
+<span id="cb10-5">                  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">N =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20000</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dp"</span>)</span>
+<span id="cb10-6"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">allocation</span>(g)</span>
+<span id="cb10-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">compare_designs</span>(g)</span></code></pre></div></div>
+<hr>
+</section>
+<section id="cost-constrained-allocation" class="level2">
+<h2 class="anchored" data-anchor-id="cost-constrained-allocation">Cost-Constrained Allocation</h2>
+<p>When sampling costs differ by stratum (large units cost more to visit):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">ch <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">50</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">80</span>)   <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># cost per sampled unit, stratum 1 to 4</span></span>
+<span id="cb11-2"></span>
+<span id="cb11-3">cost_res <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>,</span>
+<span id="cb11-4">                        <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dp"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cost =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">ch =</span> ch)</span>
+<span id="cb11-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">allocation</span>(cost_res)</span></code></pre></div></div>
+<p>The cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design’s, so it is the better choice when the budget, rather than the sample size, is fixed.</p>
+<hr>
+</section>
+<section id="shiny-app" class="level2">
+<h2 class="anchored" data-anchor-id="shiny-app">Shiny App</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"shiny"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bslib"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DT"</span>))   <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># once</span></span>
+<span id="cb12-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">stratifyRApp</span>()</span></code></pre></div></div>
+<p>The app covers the full workflow across eight tabs. With the EXACT solver, two tick boxes switch on the full-variance and take-all options, and the results then show the variance and the take-all units.</p>
+<div class="fn-card">
+<strong>Optimal Boundaries:</strong> per-stratum summary table + 2D density plot<br>
+<strong>Design Comparison:</strong> variance, SE, design effect vs. SRS and proportional<br>
+<strong>Strata Count:</strong> objective function curve with elbow recommendation<br>
+<strong>Boundary Methods:</strong> DP vs. classical boundary rules side by side<br>
+<strong>Sample Size:</strong> target precision to required sample size<br>
+<strong>Allocation:</strong> SRS / proportional / Neyman compared<br>
+<strong>Cost-Constrained:</strong> enter per-stratum costs and see the cost-aware design<br>
+<strong>Visualise:</strong> 2D density, 3D objective surface, interactive boundary explorer
+</div>
+<hr>
+</section>
+<section id="what-is-new-in-version-2.1-0" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-new-in-version-2.1-0">What Is New in Version 2.1-0</h2>
+<div class="new-item"><span class="tag">NEW</span><div><strong>Accessor functions</strong>: <code>boundaries()</code>, <code>allocation()</code>, <code>objective()</code>, <code>variance()</code> and <code>fitted_distribution()</code> take the results out of any design, and <code>as.data.frame()</code> works on results and summaries.</div></div>
+<div class="new-item"><span class="tag">BETTER</span><div><strong>summary()</strong> now returns a summary object that you can keep and reuse. It prints only when you ask, and looks the same as before.</div></div>
+<div class="new-item"><span class="tag">BETTER</span><div><strong>Clear messages</strong>: every argument is checked first, and a wrong input stops with a message that says what is expected.</div></div>
+<div class="new-item"><span class="tag">FIX</span><div><strong>Works alongside the stratification package</strong>: results now have class <code>c("stratifyR", "strata")</code>, so <code>print()</code> and <code>plot()</code> keep working when both packages are loaded.</div></div>
+<div class="new-item"><span class="tag">FIX</span><div>No more spurious "NaNs produced" warnings, and a clearer variance label in the Shiny app.</div></div>
+<div class="new-item"><span class="tag">COMPAT</span><div>Existing <code>strata.data()</code> and <code>strata.distr()</code> calls give the same results as before.</div></div>
+<p>Earlier in 2.0-4: the full-variance and take-all options for the exact solver. In 2.0-2 and 2.0-3: the exact solver, accuracy improvements to COBYLA, GLOBAL and DP from a 20-seed simulation study, and fixes to the Pareto, triangular and Cauchy fits.</p>
+<p>Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, <code>compare_designs()</code>, the 2D, 3D and interactive plots, and the Shiny app.</p>
+<hr>
+</section>
+<section id="who-is-stratifyr-for" class="level2">
+<h2 class="anchored" data-anchor-id="who-is-stratifyr-for">Who Is stratifyR For?</h2>
+<div class="use-grid">
+  <div class="use-card"><h4 class="anchored">Statistical Offices</h4><p>Business, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.</p></div>
+  <div class="use-card"><h4 class="anchored">Survey Methodologists</h4><p>An open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.</p></div>
+  <div class="use-card"><h4 class="anchored">Applied Researchers</h4><p>Health, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.</p></div>
+  <div class="use-card"><h4 class="anchored">Teachers &amp; Students</h4><p>The app and interactive plots show how boundaries and allocation affect an estimate, with no code needed.</p></div>
+</div>
+<hr>
+</section>
+<section id="quick-reference" class="level2">
+<h2 class="anchored" data-anchor-id="quick-reference">Quick Reference</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 52%">
+<col style="width: 47%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>strata.data(x, h, n)</code></td>
+<td>Fit + optimal boundaries + allocation from data</td>
+</tr>
+<tr class="even">
+<td><code>strata.data(x, h, n, method = "exact")</code></td>
+<td>Exact optimum on the data</td>
+</tr>
+<tr class="odd">
+<td><code>strata.data(x, h, n, method = "exact", takeall = TRUE)</code></td>
+<td>Full variance with a take-all stratum</td>
+</tr>
+<tr class="even">
+<td><code>strata.distr(h, n, distr, params, N)</code></td>
+<td>Optimal design from assumed distribution</td>
+</tr>
+<tr class="odd">
+<td><code>compare_designs(res)</code></td>
+<td>Design efficiency vs.&nbsp;SRS and proportional</td>
+</tr>
+<tr class="even">
+<td><code>plot(res)</code></td>
+<td>2D strata density plot</td>
+</tr>
+<tr class="odd">
+<td><code>plot(res, type = "3d")</code></td>
+<td>Interactive 3D objective surface</td>
+</tr>
+<tr class="even">
+<td><code>plot(res, type = "interactive")</code></td>
+<td>Real-time boundary explorer</td>
+</tr>
+<tr class="odd">
+<td><code>stratifyRApp()</code></td>
+<td>Launch Shiny app</td>
+</tr>
+<tr class="even">
+<td><code>boundaries(res)</code>, <code>allocation(res)</code></td>
+<td>Optimal boundaries, and the per-stratum table</td>
+</tr>
+<tr class="odd">
+<td><code>objective(res)</code>, <code>variance(res)</code></td>
+<td>Objective function, and variance of the estimated mean</td>
+</tr>
+<tr class="even">
+<td><code>summary(res)</code></td>
+<td>Full per-stratum table</td>
+</tr>
+<tr class="odd">
+<td><code>print(res)</code></td>
+<td>Console summary</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="citation" class="level2">
+<h2 class="anchored" data-anchor-id="citation">Citation</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">citation</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"stratifyR"</span>)</span></code></pre></div></div>
+<blockquote class="blockquote">
+<p>Reddy, K. G., &amp; Khan, M. G. M. (2026). <em>stratifyR: Optimal Stratification of Univariate Populations</em>. R package version 2.1-0. <a href="https://cran.r-project.org/package=stratifyR" class="uri">https://cran.r-project.org/package=stratifyR</a></p>
+</blockquote>
+<hr>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>stratifyR is on CRAN: <a href="https://cran.r-project.org/package=stratifyR" class="uri">https://cran.r-project.org/package=stratifyR</a>, and the development version is on GitHub: <a href="https://github.com/karunaredz/stratifyR" class="uri">https://github.com/karunaredz/stratifyR</a>.<br>
+A methods paper, benchmarking all four solvers against the exact optimum and the classical methods, is being prepared for journal submission.</p>
+<p>We would love to hear how you are using the package. Get in touch or leave a comment.</p>
+</div>
+</div>
+</div>
+
+
+</section>
+
+ ]]></description>
+  <category>R</category>
+  <category>stratifyR</category>
+  <category>survey sampling</category>
+  <category>CRAN</category>
+  <guid>https://karunaredz.github.io/blog/posts/stratifyR-2.1-0/</guid>
+  <pubDate>Fri, 13 Nov 2026 11:00:00 GMT</pubDate>
+  <media:content url="https://karunaredz.github.io/blog/posts/stratifyR-2.1-0/stratifyr-logo.png" medium="image" type="image/png" height="144" width="144"/>
+</item>
 <item>
   <title>clusta 1.0-1</title>
   <dc:creator>Karuna G. Reddy, Gabiriele Bulivou and M. G. M. Khan</dc:creator>
@@ -2917,777 +3675,6 @@ font-style: inherit;">"multistrata"</span>)</span></code></pre></div></div>
   <guid>https://karunaredz.github.io/blog/posts/multistrata-1.0-1/</guid>
   <pubDate>Thu, 29 Oct 2026 11:00:00 GMT</pubDate>
   <media:content url="https://karunaredz.github.io/blog/posts/multistrata-1.0-1/multistrata-logo.png" medium="image" type="image/png" height="165" width="144"/>
-</item>
-<item>
-  <title>stratifyR 2.0-4</title>
-  <dc:creator>Karuna G. Reddy and M. G. M. Khan</dc:creator>
-  <link>https://karunaredz.github.io/blog/posts/stratifyR-2.0-4/</link>
-  <description><![CDATA[ 
-
-
-
-
-<style>
-.pkg-hero {
-  display: flex; align-items: center; gap: 28px;
-  padding: 24px 28px;
-  background: linear-gradient(135deg, #0D2B6B 0%, #1565C0 60%, #1976D2 100%);
-  border-radius: 10px; margin-bottom: 28px; color: white;
-}
-.pkg-hero img { width: 110px; height: auto; flex-shrink: 0; border-radius: 6px; }
-.pkg-hero h1 { margin: 0 0 4px 0; font-size: 2.4rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
-.pkg-hero .subtitle { font-size: 1.05rem; color: #B3E5FC; margin: 0 0 10px 0; }
-.pkg-hero .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.pkg-hero .badges a img, .pkg-hero .badges img { height: 22px; vertical-align: middle; border-radius: 0; width: auto; }
-.pkg-hero .install-box {
-  background: rgba(0,0,0,0.35); border-radius: 6px; padding: 10px 14px;
-  font-family: monospace; font-size: 0.9rem; color: #80DEEA;
-  margin-top: 10px; border-left: 3px solid #FFD54F;
-}
-.fn-card {
-  border-left: 4px solid #1565C0; padding: 12px 16px;
-  background: #f0f7ff; border-radius: 0 6px 6px 0; margin: 12px 0; line-height: 1.9;
-}
-.fn-card code { background: #BBDEFB; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
-.solver-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 16px 0; }
-.solver-card { border-radius: 8px; padding: 14px 16px; }
-.solver-dp   { background: #e8f5e9; border-top: 4px solid #2E7D32; }
-.solver-cob  { background: #e3f2fd; border-top: 4px solid #1565C0; }
-.solver-glob { background: #fff3e0; border-top: 4px solid #E65100; }
-.solver-exact { background: #f3e5f5; border-top: 4px solid #6A1B9A; }
-.solver-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; }
-.solver-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
-.use-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
-.use-card { border-radius: 8px; padding: 14px; background: white; border: 1px solid #BBDEFB; }
-.use-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; color: #1565C0; }
-.use-card p  { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.45; }
-.new-item { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; }
-.new-item .tag { background: #1565C0; color: white; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
-</style>
-
-<div class="pkg-hero">
-  <img src="https://karunaredz.github.io/blog/posts/stratifyR-2.0-4/stratifyr-logo.png" alt="stratifyR logo">
-  <div>
-    <h1>stratifyR 2.0-4</h1>
-    <div class="subtitle">Optimal Survey Stratification in R</div>
-    <div class="badges">
-      <a href="https://cran.r-project.org/package=stratifyR"><img src="https://www.r-pkg.org/badges/version/stratifyR" alt="CRAN"></a>
-      <a href="https://cran.r-project.org/package=stratifyR"><img src="https://cranlogs.r-pkg.org/badges/stratifyR" alt="Downloads"></a>
-      <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT">
-      <img src="https://img.shields.io/badge/R-%3E%3D4.1-276DC3.svg" alt="R 4.1+">
-    </div>
-    <div class="install-box">
-      install.packages("stratifyR") &nbsp;·&nbsp; library(stratifyR)
-    </div>
-  </div>
-</div>
-<p>When your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.</p>
-<p><strong>stratifyR 2.0-4</strong> works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Why stratification matters
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>For skewed populations, optimal stratification can cut the variance a great deal at the same total sample size. The gain depends entirely on where the boundaries sit. stratifyR finds the best boundaries for your data.</p>
-</div>
-</div>
-<hr>
-<section id="quick-start" class="level2">
-<h2 class="anchored" data-anchor-id="quick-start">Quick Start</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(stratifyR)</span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">data</span>(sugarcane)   <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 13,894 cane growers in Fiji</span></span>
-<span id="cb1-3"></span>
-<span id="cb1-4"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 4 strata · total sample 500 · Dynamic Programming solver</span></span>
-<span id="cb1-5">res <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"dp"</span>)</span>
-<span id="cb1-6"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">summary</span>(res)</span></code></pre></div></div>
-<p>One call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>OSB       <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># optimal stratum boundaries</span></span>
-<span id="cb2-2">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>nh        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># sample sizes per stratum</span></span>
-<span id="cb2-3">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Wh        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># stratum weights</span></span>
-<span id="cb2-4">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Vh        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># within-stratum variances</span></span>
-<span id="cb2-5">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>WhSh      <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># each stratum's contribution to the objective function</span></span>
-<span id="cb2-6">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>WhShTot   <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># objective function, sum of Wh*Sh (lower = better)</span></span>
-<span id="cb2-7">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>variance  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># variance of the estimated mean, with the finite population correction</span></span>
-<span id="cb2-8">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>distr     <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># fitted distribution name</span></span>
-<span id="cb2-9">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>fit       <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># fitted distribution parameters</span></span></code></pre></div></div>
-<hr>
-</section>
-<section id="distribution-fitting-step" class="level2">
-<h2 class="anchored" data-anchor-id="distribution-fitting-step">Distribution Fitting Step</h2>
-<p>Before placing any boundaries, <code>strata.data()</code> automatically fits your variable’s distribution from these candidates:</p>
-<p><code>Normal</code> · <code>Log-Normal</code> · <code>Gamma</code> · <code>Weibull</code> · <code>Exponential</code> · <code>Cauchy</code> · <code>Uniform</code> · <code>Pareto</code> · <code>Triangular</code> · <code>Right-Triangular</code></p>
-<p>The fitted distribution is used by the Dynamic Programming solver to compute each stratum’s contribution exactly. Since 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Tip
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Already know the distribution? Use <code>strata.distr()</code> to supply it directly. No data needed (see Design Without Data).</p>
-</div>
-</div>
-<hr>
-</section>
-<section id="four-solvers" class="level2">
-<h2 class="anchored" data-anchor-id="four-solvers">Four Solvers</h2>
-<div class="solver-grid">
-  <div class="solver-card solver-dp">
-    <h4 class="anchored">Dynamic Programming</h4>
-    <p><code>method = "dp"</code><br>The default. <strong>Globally optimal</strong> on a fine grid for the fitted distribution, followed by a short local refinement that can only improve the answer.</p>
-  </div>
-  <div class="solver-card solver-exact">
-    <h4 class="anchored">EXACT</h4>
-    <p><code>method = "exact"</code><br>Dynamic programming on the data themselves. Returns the <strong>best possible partition of your sample</strong>. Exact for up to 20,000 distinct cut points.</p>
-  </div>
-  <div class="solver-card solver-cob">
-    <h4 class="anchored">COBYLA</h4>
-    <p><code>method = "cobyla"</code><br>Fast multi-start solver. One start comes from a quick coarse exact search, so it copes well with very skewed data. Best for interactive use.</p>
-  </div>
-  <div class="solver-card solver-glob">
-    <h4 class="anchored">GLOBAL</h4>
-    <p><code>method = "global"</code><br>Two phases: a broad DIRECT-L search on the rank scale, then a local refinement. A safe, fast choice for skewed data.</p>
-  </div>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">dp   <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"dp"</span>)</span>
-<span id="cb3-2">ex   <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"exact"</span>)</span>
-<span id="cb3-3">cob  <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"cobyla"</span>)</span>
-<span id="cb3-4">glob <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"global"</span>)</span></code></pre></div></div>
-<section id="solution-quality-diagnostics" class="level3">
-<h3 class="anchored" data-anchor-id="solution-quality-diagnostics">Solution Quality Diagnostics</h3>
-<p>For COBYLA and GLOBAL, check how close the solution is to optimal:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>converged        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># did the solver converge?</span></span>
-<span id="cb4-2">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>optimality_gap   <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Cauchy-Schwarz gap: distance above the lower bound</span></span>
-<span id="cb4-3">res<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>kkt_residuals    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># first-order optimality residuals</span></span></code></pre></div></div>
-<hr>
-</section>
-</section>
-<section id="full-variance-and-a-take-all-stratum" class="level2">
-<h2 class="anchored" data-anchor-id="full-variance-and-a-take-all-stratum">Full Variance and a Take-All Stratum</h2>
-<p>The usual objective, the sum of <img src="https://latex.codecogs.com/png.latex?W_h%20S_h">, ignores the finite population correction, and Neyman allocation can ask for more units than a stratum holds. Both matter when your sample is a large part of the population, or when a few very large units sit at the top of the range, as in many business and farm surveys.</p>
-<p>Version 2.0-4 adds two options to the exact solver for these cases:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># minimise the full variance, including the finite population correction</span></span>
-<span id="cb5-2">fv <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>,</span>
-<span id="cb5-3">                  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"exact"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">fpc =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>)</span>
-<span id="cb5-4"></span>
-<span id="cb5-5"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># also let the top stratum be sampled completely (a take-all stratum)</span></span>
-<span id="cb5-6">ta <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>,</span>
-<span id="cb5-7">                  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"exact"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">takeall =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>)</span>
-<span id="cb5-8"></span>
-<span id="cb5-9"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">default =</span> ex<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>variance, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">fpc =</span> fv<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>variance, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">takeall =</span> ta<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>variance)</span>
-<span id="cb5-10">ta<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>takeall   <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># units in the take-all stratum (0 if none)</span></span></code></pre></div></div>
-<p>With <code>fpc = TRUE</code> the minimum is certified, so <code>optimality_gap</code> is 0 when the bound is reached. With <code>takeall = TRUE</code> every size of take-all stratum is tried together with the other boundaries. The <code>variance</code> element is computed from the final allocation, so you can compare the designs directly and keep the smallest.</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>When to use it
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>If n/N is not small, or the top stratum looks over-allocated, use <code>method = "exact", takeall = TRUE</code>. In our benchmark of 65 settings it gave the smallest achieved variance every time, in about 12 seconds in median.</p>
-</div>
-</div>
-<hr>
-</section>
-<section id="visualising-the-design" class="level2">
-<h2 class="anchored" data-anchor-id="visualising-the-design">Visualising the Design</h2>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">2D Density Plot</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">3D Cost Surface</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" aria-controls="tabset-1-3" aria-selected="false" href="">Boundary Explorer</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
-<p>Histogram with fitted density curve and colour-coded strata shading. Immediately shows where the boundaries fall and how the data mass is split.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot</span>(res)</span></code></pre></div></div>
-</div>
-<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
-<p>Interactive plotly surface showing how the objective function changes as boundaries move. Reveals that the optimum sits in a well.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot</span>(res, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"3d"</span>)</span></code></pre></div></div>
-</div>
-<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
-<p>One slider per interior boundary. Drag it and the objective function updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot</span>(res, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"interactive"</span>)</span></code></pre></div></div>
-</div>
-</div>
-</div>
-<hr>
-</section>
-<section id="design-efficiency-report" class="level2">
-<h2 class="anchored" data-anchor-id="design-efficiency-report">Design Efficiency Report</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1">cd <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">compare_designs</span>(res)</span>
-<span id="cb9-2">cd</span></code></pre></div></div>
-<p>Compares three designs at the same sample size: <strong>Simple Random Sampling</strong>, <strong>Proportional Allocation</strong>, and <strong>Optimal Neyman Allocation</strong>. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Reading the report
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The equivalent SRS size tells you how many units a simple random sample would need to match the precision of your stratified design. On skewed data such as the sugarcane production, it is many times larger than the stratified sample.</p>
-</div>
-</div>
-<hr>
-</section>
-<section id="choosing-the-number-of-strata" class="level2">
-<h2 class="anchored" data-anchor-id="choosing-the-number-of-strata">Choosing the Number of Strata</h2>
-<p>More strata always lower the objective function, but the gains level off quickly. Scan a range and look for the elbow:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (L <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span>) {</span>
-<span id="cb10-2">  r <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> L, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"cobyla"</span>)</span>
-<span id="cb10-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">cat</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"L ="</span>, L, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"  objective ="</span>, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">round</span>(r<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>WhShTot, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>), <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb10-4">}</span></code></pre></div></div>
-<p>The Shiny app does this automatically and marks the recommended stratum count on the curve.</p>
-<hr>
-</section>
-<section id="design-without-data" class="level2">
-<h2 class="anchored" data-anchor-id="design-without-data">Design Without Data</h2>
-<p>You can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Household income survey: log-normal, 20,000 units, n = 1,000</span></span>
-<span id="cb11-2">g <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.distr</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">initval =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">dist =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">119500</span>,</span>
-<span id="cb11-3">                  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">distr =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"lnorm"</span>,</span>
-<span id="cb11-4">                  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">params =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">meanlog =</span> <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">9.616</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">sdlog =</span> <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.703</span>),</span>
-<span id="cb11-5">                  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1000</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">N =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">20000</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"dp"</span>)</span>
-<span id="cb11-6"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">summary</span>(g)</span>
-<span id="cb11-7"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">compare_designs</span>(g)</span></code></pre></div></div>
-<hr>
-</section>
-<section id="cost-constrained-allocation" class="level2">
-<h2 class="anchored" data-anchor-id="cost-constrained-allocation">Cost-Constrained Allocation</h2>
-<p>When sampling costs differ by stratum (large units cost more to visit):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1">ch <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">20</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">30</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">50</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">80</span>)   <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># cost per sampled unit, stratum 1 to 4</span></span>
-<span id="cb12-2"></span>
-<span id="cb12-3">cost_res <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">strata.data</span>(sugarcane<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Production, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">h =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">n =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span>,</span>
-<span id="cb12-4">                        <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"dp"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cost =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">ch =</span> ch)</span></code></pre></div></div>
-<p>The cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design’s, so it is the better choice when the budget, rather than the sample size, is fixed.</p>
-<hr>
-</section>
-<section id="shiny-app" class="level2">
-<h2 class="anchored" data-anchor-id="shiny-app">Shiny App</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"shiny"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"bslib"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"DT"</span>))   <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># once</span></span>
-<span id="cb13-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">stratifyRApp</span>()</span></code></pre></div></div>
-<p>The app covers the full workflow across eight tabs. With the EXACT solver, two tick boxes switch on the full-variance and take-all options, and the results then show the variance and the take-all units.</p>
-<div class="fn-card">
-<strong>Optimal Boundaries:</strong> per-stratum summary table + 2D density plot<br>
-<strong>Design Comparison:</strong> variance, SE, design effect vs. SRS and proportional<br>
-<strong>Strata Count:</strong> objective function curve with elbow recommendation<br>
-<strong>Boundary Methods:</strong> DP vs. classical boundary rules side by side<br>
-<strong>Sample Size:</strong> target precision to required sample size<br>
-<strong>Allocation:</strong> SRS / proportional / Neyman compared<br>
-<strong>Cost-Constrained:</strong> enter per-stratum costs and see the cost-aware design<br>
-<strong>Visualise:</strong> 2D density, 3D objective surface, interactive boundary explorer
-</div>
-<hr>
-</section>
-<section id="what-is-new-in-version-2.0-4" class="level2">
-<h2 class="anchored" data-anchor-id="what-is-new-in-version-2.0-4">What Is New in Version 2.0-4</h2>
-<div class="new-item"><span class="tag">NEW</span><div><strong>Full variance</strong>: <code>fpc = TRUE</code> makes the exact solver minimise the full variance of the estimated mean, including the finite population correction, with a certificate of optimality.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong>Take-all stratum</strong>: <code>takeall = TRUE</code> lets the top stratum be sampled completely when this lowers the variance, choosing its size together with the other boundaries.</div></div>
-<div class="new-item"><span class="tag">NEW</span><div><strong>New output</strong>: every result now carries <code>variance</code> (with the finite population correction) and <code>takeall</code>, and <code>summary()</code> shows them. A warning is given if a stratum gets fewer than 2 sample units.</div></div>
-<div class="new-item"><span class="tag">BETTER</span><div><strong>Shiny app</strong>: tick boxes for the new options, readable drop-down lists, and the number of strata now written as L throughout.</div></div>
-<div class="new-item"><span class="tag">COMPAT</span><div>Fully backward-compatible. Existing <code>strata.data()</code> and <code>strata.distr()</code> calls give the same results as before.</div></div>
-<p>Earlier in 2.0-2 and 2.0-3: the exact solver, accuracy improvements to COBYLA, GLOBAL and DP from a 20-seed simulation study, and fixes to the Pareto, triangular and Cauchy fits.</p>
-<p>Already in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, <code>compare_designs()</code>, solution-quality diagnostics, the 2D, 3D and interactive plots, and the Shiny app.</p>
-<hr>
-</section>
-<section id="who-is-stratifyr-for" class="level2">
-<h2 class="anchored" data-anchor-id="who-is-stratifyr-for">Who Is stratifyR For?</h2>
-<div class="use-grid">
-  <div class="use-card"><h4 class="anchored">Statistical Offices</h4><p>Business, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.</p></div>
-  <div class="use-card"><h4 class="anchored">Survey Methodologists</h4><p>An open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.</p></div>
-  <div class="use-card"><h4 class="anchored">Applied Researchers</h4><p>Health, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.</p></div>
-  <div class="use-card"><h4 class="anchored">Teachers &amp; Students</h4><p>The app and interactive plots show how boundaries and allocation affect an estimate, with no code needed.</p></div>
-</div>
-<hr>
-</section>
-<section id="quick-reference" class="level2">
-<h2 class="anchored" data-anchor-id="quick-reference">Quick Reference</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 52%">
-<col style="width: 47%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Function</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>strata.data(x, h, n)</code></td>
-<td>Fit + optimal boundaries + allocation from data</td>
-</tr>
-<tr class="even">
-<td><code>strata.data(x, h, n, method = "exact")</code></td>
-<td>Exact optimum on the data</td>
-</tr>
-<tr class="odd">
-<td><code>strata.data(x, h, n, method = "exact", takeall = TRUE)</code></td>
-<td>Full variance with a take-all stratum</td>
-</tr>
-<tr class="even">
-<td><code>strata.distr(h, n, distr, params, N)</code></td>
-<td>Optimal design from assumed distribution</td>
-</tr>
-<tr class="odd">
-<td><code>compare_designs(res)</code></td>
-<td>Design efficiency vs.&nbsp;SRS and proportional</td>
-</tr>
-<tr class="even">
-<td><code>plot(res)</code></td>
-<td>2D strata density plot</td>
-</tr>
-<tr class="odd">
-<td><code>plot(res, type = "3d")</code></td>
-<td>Interactive 3D objective surface</td>
-</tr>
-<tr class="even">
-<td><code>plot(res, type = "interactive")</code></td>
-<td>Real-time boundary explorer</td>
-</tr>
-<tr class="odd">
-<td><code>stratifyRApp()</code></td>
-<td>Launch Shiny app</td>
-</tr>
-<tr class="even">
-<td><code>summary(res)</code></td>
-<td>Full per-stratum table</td>
-</tr>
-<tr class="odd">
-<td><code>print(res)</code></td>
-<td>Console summary</td>
-</tr>
-</tbody>
-</table>
-<hr>
-</section>
-<section id="citation" class="level2">
-<h2 class="anchored" data-anchor-id="citation">Citation</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">citation</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"stratifyR"</span>)</span></code></pre></div></div>
-<blockquote class="blockquote">
-<p>Reddy, K. G., &amp; Khan, M. G. M. (2026). <em>stratifyR: Optimal Stratification of Univariate Populations</em>. R package version 2.0-4. <a href="https://cran.r-project.org/package=stratifyR" class="uri">https://cran.r-project.org/package=stratifyR</a></p>
-</blockquote>
-<hr>
-<div class="callout callout-style-simple callout-note">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-body-container">
-<p>stratifyR is on CRAN: <a href="https://cran.r-project.org/package=stratifyR" class="uri">https://cran.r-project.org/package=stratifyR</a><br>
-A full software paper on stratifyR 2.0, benchmarking all four solvers against the exact optimum and the classical methods, is being prepared for journal submission.</p>
-<p>We would love to hear how you are using the package. Get in touch or leave a comment.</p>
-</div>
-</div>
-</div>
-
-
-</section>
-
- ]]></description>
-  <category>R</category>
-  <category>stratifyR</category>
-  <category>survey sampling</category>
-  <category>CRAN</category>
-  <guid>https://karunaredz.github.io/blog/posts/stratifyR-2.0-4/</guid>
-  <pubDate>Sat, 24 Oct 2026 11:00:00 GMT</pubDate>
-  <media:content url="https://karunaredz.github.io/blog/posts/stratifyR-2.0-4/stratifyr-logo.png" medium="image" type="image/png" height="144" width="144"/>
 </item>
 <item>
   <title>FitVerse</title>

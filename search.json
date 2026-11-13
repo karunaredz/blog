@@ -161,109 +161,109 @@
     "text": "Citation\ncitation(\"multistrata\")\n\nReddy, K. G., & Khan, M. G. M. (2026). multistrata: Multivariate Optimum Stratification and Sample Allocation for Surveys. R package version 1.0-1.\n\n(A CRAN URL will be added here once the package is accepted.)\n\n\n\n\n\n\n\nmultistrata is not on CRAN yet. For now it installs from GitHub, as shown at the top of this post. The CRAN link will be added here after acceptance. We would love to hear how you are using it. Leave a comment or get in touch directly."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html",
-    "href": "posts/stratifyR-2.0-4/index.html",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html",
+    "href": "posts/stratifyR-2.1-0/index.html",
+    "title": "stratifyR 2.1-0",
     "section": "",
-    "text": "Optimal Survey Stratification in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"stratifyR\")  ·  library(stratifyR)\nWhen your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.\nstratifyR 2.0-4 works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report."
+    "text": "Optimal Survey Stratification in R\n    \n      \n      \n      \n      \n    \n    \n      install.packages(\"stratifyR\")  ·  remotes::install_github(\"karunaredz/stratifyR\")\nWhen your survey variable is continuous, like income, farm production, or claim size, you can cut its range into bands and sample from each band separately. The tricky part is deciding where the cuts should go, how many units to take from each band, and whether the precision gain is worth the effort.\nstratifyR 2.1-0 works all of that out for you. One call gives you the optimal boundaries, the sample size per stratum, and a plain-language efficiency report."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#quick-start",
-    "href": "posts/stratifyR-2.0-4/index.html#quick-start",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#quick-start",
+    "href": "posts/stratifyR-2.1-0/index.html#quick-start",
+    "title": "stratifyR 2.1-0",
     "section": "Quick Start",
-    "text": "Quick Start\nlibrary(stratifyR)\ndata(sugarcane)   # 13,894 cane growers in Fiji\n\n# 4 strata · total sample 500 · Dynamic Programming solver\nres &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nsummary(res)\nOne call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.\nres$OSB       # optimal stratum boundaries\nres$nh        # sample sizes per stratum\nres$Wh        # stratum weights\nres$Vh        # within-stratum variances\nres$WhSh      # each stratum's contribution to the objective function\nres$WhShTot   # objective function, sum of Wh*Sh (lower = better)\nres$variance  # variance of the estimated mean, with the finite population correction\nres$distr     # fitted distribution name\nres$fit       # fitted distribution parameters"
+    "text": "Quick Start\nlibrary(stratifyR)\ndata(sugarcane)   # 13,894 cane growers in Fiji\n\n# 4 strata · total sample 500 · Dynamic Programming solver\nres &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nsummary(res)\nOne call fits the best distribution, finds optimal boundaries, and allocates the sample. The summary shows one row per stratum with the boundaries, weight, variance, and allocation.\nNew in 2.1-0, simple functions take the results out for you, so you never need to know how the result is stored:\nboundaries(res)            # optimal stratum boundaries\nallocation(res)            # one row per stratum: Nh, Wh, Sh, WhSh, nh and fh\nobjective(res)             # objective function, sum of Wh*Sh (lower = better)\nvariance(res)              # variance of the estimated mean, with the finite population correction\nfitted_distribution(res)   # fitted distribution and its parameters\n\ns &lt;- summary(res)          # a summary object; print it when you want to see it\nas.data.frame(s)           # the summary table as a data frame"
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#distribution-fitting-step",
-    "href": "posts/stratifyR-2.0-4/index.html#distribution-fitting-step",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#distribution-fitting-step",
+    "href": "posts/stratifyR-2.1-0/index.html#distribution-fitting-step",
+    "title": "stratifyR 2.1-0",
     "section": "Distribution Fitting Step",
     "text": "Distribution Fitting Step\nBefore placing any boundaries, strata.data() automatically fits your variable’s distribution from these candidates:\nNormal · Log-Normal · Gamma · Weibull · Exponential · Cauchy · Uniform · Pareto · Triangular · Right-Triangular\nThe fitted distribution is used by the Dynamic Programming solver to compute each stratum’s contribution exactly. Since 2.0-3 the Pareto and triangular fits work properly inside the package, and the Pareto likelihood is computed in a numerically stable form.\n\n\n\n\n\n\nTip\n\n\n\nAlready know the distribution? Use strata.distr() to supply it directly. No data needed (see Design Without Data)."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#four-solvers",
-    "href": "posts/stratifyR-2.0-4/index.html#four-solvers",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#four-solvers",
+    "href": "posts/stratifyR-2.1-0/index.html#four-solvers",
+    "title": "stratifyR 2.1-0",
     "section": "Four Solvers",
-    "text": "Four Solvers\n\n  \n    Dynamic Programming\n    method = \"dp\"The default. Globally optimal on a fine grid for the fitted distribution, followed by a short local refinement that can only improve the answer.\n  \n  \n    EXACT\n    method = \"exact\"Dynamic programming on the data themselves. Returns the best possible partition of your sample. Exact for up to 20,000 distinct cut points.\n  \n  \n    COBYLA\n    method = \"cobyla\"Fast multi-start solver. One start comes from a quick coarse exact search, so it copes well with very skewed data. Best for interactive use.\n  \n  \n    GLOBAL\n    method = \"global\"Two phases: a broad DIRECT-L search on the rank scale, then a local refinement. A safe, fast choice for skewed data.\n  \n\ndp   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nex   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"exact\")\ncob  &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"cobyla\")\nglob &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"global\")\n\nSolution Quality Diagnostics\nFor COBYLA and GLOBAL, check how close the solution is to optimal:\nres$converged        # did the solver converge?\nres$optimality_gap   # Cauchy-Schwarz gap: distance above the lower bound\nres$kkt_residuals    # first-order optimality residuals"
+    "text": "Four Solvers\n\n  \n    Dynamic Programming\n    method = \"dp\"The default. Globally optimal on a fine grid for the fitted distribution, followed by a short local refinement that can only improve the answer.\n  \n  \n    EXACT\n    method = \"exact\"Dynamic programming on the data themselves. Returns the best possible partition of your sample. Exact for up to 20,000 distinct cut points.\n  \n  \n    COBYLA\n    method = \"cobyla\"Fast multi-start solver. One start comes from a quick coarse exact search, so it copes well with very skewed data. Best for interactive use.\n  \n  \n    GLOBAL\n    method = \"global\"Two phases: a broad DIRECT-L search on the rank scale, then a local refinement. A safe, fast choice for skewed data.\n  \n\ndp   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"dp\")\nex   &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"exact\")\ncob  &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"cobyla\")\nglob &lt;- strata.data(sugarcane$Production, h = 4, n = 500, method = \"global\")"
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#full-variance-and-a-take-all-stratum",
-    "href": "posts/stratifyR-2.0-4/index.html#full-variance-and-a-take-all-stratum",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#full-variance-and-a-take-all-stratum",
+    "href": "posts/stratifyR-2.1-0/index.html#full-variance-and-a-take-all-stratum",
+    "title": "stratifyR 2.1-0",
     "section": "Full Variance and a Take-All Stratum",
-    "text": "Full Variance and a Take-All Stratum\nThe usual objective, the sum of \\(W_h S_h\\), ignores the finite population correction, and Neyman allocation can ask for more units than a stratum holds. Both matter when your sample is a large part of the population, or when a few very large units sit at the top of the range, as in many business and farm surveys.\nVersion 2.0-4 adds two options to the exact solver for these cases:\n# minimise the full variance, including the finite population correction\nfv &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                  method = \"exact\", fpc = TRUE)\n\n# also let the top stratum be sampled completely (a take-all stratum)\nta &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                  method = \"exact\", takeall = TRUE)\n\nc(default = ex$variance, fpc = fv$variance, takeall = ta$variance)\nta$takeall   # units in the take-all stratum (0 if none)\nWith fpc = TRUE the minimum is certified, so optimality_gap is 0 when the bound is reached. With takeall = TRUE every size of take-all stratum is tried together with the other boundaries. The variance element is computed from the final allocation, so you can compare the designs directly and keep the smallest.\n\n\n\n\n\n\nTipWhen to use it\n\n\n\nIf n/N is not small, or the top stratum looks over-allocated, use method = \"exact\", takeall = TRUE. In our benchmark of 65 settings it gave the smallest achieved variance every time, in about 12 seconds in median."
+    "text": "Full Variance and a Take-All Stratum\nThe usual objective, the sum of \\(W_h S_h\\), ignores the finite population correction, and Neyman allocation can ask for more units than a stratum holds. Both matter when your sample is a large part of the population, or when a few very large units sit at the top of the range, as in many business and farm surveys.\nThe exact solver has two options for these cases:\n# minimise the full variance, including the finite population correction\nfv &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                  method = \"exact\", fpc = TRUE)\n\n# also let the top stratum be sampled completely (a take-all stratum)\nta &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                  method = \"exact\", takeall = TRUE)\n\nc(default = variance(ex), fpc = variance(fv), takeall = variance(ta))\nsummary(ta)   # shows the take-all stratum, if one is chosen\nWith fpc = TRUE the minimum is certified when the bound is reached. With takeall = TRUE every size of take-all stratum is tried together with the other boundaries. variance() is computed from the final allocation, so you can compare the designs directly and keep the smallest.\n\n\n\n\n\n\nTipWhen to use it\n\n\n\nIf n/N is not small, or the top stratum looks over-allocated, use method = \"exact\", takeall = TRUE. In our benchmark of 65 settings it gave the smallest achieved variance every time, in about 12 seconds in median."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#visualising-the-design",
-    "href": "posts/stratifyR-2.0-4/index.html#visualising-the-design",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#visualising-the-design",
+    "href": "posts/stratifyR-2.1-0/index.html#visualising-the-design",
+    "title": "stratifyR 2.1-0",
     "section": "Visualising the Design",
     "text": "Visualising the Design\n\n2D Density Plot3D Cost SurfaceBoundary Explorer\n\n\nHistogram with fitted density curve and colour-coded strata shading. Immediately shows where the boundaries fall and how the data mass is split.\nplot(res)\n\n\nInteractive plotly surface showing how the objective function changes as boundaries move. Reveals that the optimum sits in a well.\nplot(res, type = \"3d\")\n\n\nOne slider per interior boundary. Drag it and the objective function updates in real time. Good for teaching and for checking how sensitive the design is to small boundary changes.\nplot(res, type = \"interactive\")"
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#design-efficiency-report",
-    "href": "posts/stratifyR-2.0-4/index.html#design-efficiency-report",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#design-efficiency-report",
+    "href": "posts/stratifyR-2.1-0/index.html#design-efficiency-report",
+    "title": "stratifyR 2.1-0",
     "section": "Design Efficiency Report",
     "text": "Design Efficiency Report\ncd &lt;- compare_designs(res)\ncd\nCompares three designs at the same sample size: Simple Random Sampling, Proportional Allocation, and Optimal Neyman Allocation. For each: variance, standard error, design effect, equivalent SRS size, and percentage saving.\n\n\n\n\n\n\nNoteReading the report\n\n\n\nThe equivalent SRS size tells you how many units a simple random sample would need to match the precision of your stratified design. On skewed data such as the sugarcane production, it is many times larger than the stratified sample."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#choosing-the-number-of-strata",
-    "href": "posts/stratifyR-2.0-4/index.html#choosing-the-number-of-strata",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#choosing-the-number-of-strata",
+    "href": "posts/stratifyR-2.1-0/index.html#choosing-the-number-of-strata",
+    "title": "stratifyR 2.1-0",
     "section": "Choosing the Number of Strata",
-    "text": "Choosing the Number of Strata\nMore strata always lower the objective function, but the gains level off quickly. Scan a range and look for the elbow:\nfor (L in 2:6) {\n  r &lt;- strata.data(sugarcane$Production, h = L, n = 500, method = \"cobyla\")\n  cat(\"L =\", L, \"  objective =\", round(r$WhShTot, 2), \"\\n\")\n}\nThe Shiny app does this automatically and marks the recommended stratum count on the curve."
+    "text": "Choosing the Number of Strata\nMore strata always lower the objective function, but the gains level off quickly. Scan a range and look for the elbow:\nfor (L in 2:6) {\n  r &lt;- strata.data(sugarcane$Production, h = L, n = 500, method = \"cobyla\")\n  cat(\"L =\", L, \"  objective =\", round(objective(r), 2), \"\\n\")\n}\nThe Shiny app does this automatically and marks the recommended stratum count on the curve."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#design-without-data",
-    "href": "posts/stratifyR-2.0-4/index.html#design-without-data",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#design-without-data",
+    "href": "posts/stratifyR-2.1-0/index.html#design-without-data",
+    "title": "stratifyR 2.1-0",
     "section": "Design Without Data",
-    "text": "Design Without Data\nYou can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:\n# Household income survey: log-normal, 20,000 units, n = 1,000\ng &lt;- strata.distr(h = 4, initval = 500, dist = 119500,\n                  distr = \"lnorm\",\n                  params = c(meanlog = 9.616, sdlog = 0.703),\n                  n = 1000, N = 20000, method = \"dp\")\nsummary(g)\ncompare_designs(g)"
+    "text": "Design Without Data\nYou can plan the full design before any fieldwork using an assumed distribution from a past round or pilot study:\n# Household income survey: log-normal, 20,000 units, n = 1,000\ng &lt;- strata.distr(h = 4, initval = 500, dist = 119500,\n                  distr = \"lnorm\",\n                  params = c(meanlog = 9.616, sdlog = 0.703),\n                  n = 1000, N = 20000, method = \"dp\")\nallocation(g)\ncompare_designs(g)"
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#cost-constrained-allocation",
-    "href": "posts/stratifyR-2.0-4/index.html#cost-constrained-allocation",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#cost-constrained-allocation",
+    "href": "posts/stratifyR-2.1-0/index.html#cost-constrained-allocation",
+    "title": "stratifyR 2.1-0",
     "section": "Cost-Constrained Allocation",
-    "text": "Cost-Constrained Allocation\nWhen sampling costs differ by stratum (large units cost more to visit):\nch &lt;- c(20, 30, 50, 80)   # cost per sampled unit, stratum 1 to 4\n\ncost_res &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                        method = \"dp\", cost = TRUE, ch = ch)\nThe cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design’s, so it is the better choice when the budget, rather than the sample size, is fixed."
+    "text": "Cost-Constrained Allocation\nWhen sampling costs differ by stratum (large units cost more to visit):\nch &lt;- c(20, 30, 50, 80)   # cost per sampled unit, stratum 1 to 4\n\ncost_res &lt;- strata.data(sugarcane$Production, h = 4, n = 500,\n                        method = \"dp\", cost = TRUE, ch = ch)\nallocation(cost_res)\nThe cost-aware design adjusts both the boundaries and the allocation, and moves more of the sample into the cheaper strata, so the same total n costs less in the field. Its variance is a little higher than the Neyman design’s, so it is the better choice when the budget, rather than the sample size, is fixed."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#shiny-app",
-    "href": "posts/stratifyR-2.0-4/index.html#shiny-app",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#shiny-app",
+    "href": "posts/stratifyR-2.1-0/index.html#shiny-app",
+    "title": "stratifyR 2.1-0",
     "section": "Shiny App",
     "text": "Shiny App\ninstall.packages(c(\"shiny\", \"bslib\", \"DT\"))   # once\nstratifyRApp()\nThe app covers the full workflow across eight tabs. With the EXACT solver, two tick boxes switch on the full-variance and take-all options, and the results then show the variance and the take-all units.\n\nOptimal Boundaries: per-stratum summary table + 2D density plot\nDesign Comparison: variance, SE, design effect vs. SRS and proportional\nStrata Count: objective function curve with elbow recommendation\nBoundary Methods: DP vs. classical boundary rules side by side\nSample Size: target precision to required sample size\nAllocation: SRS / proportional / Neyman compared\nCost-Constrained: enter per-stratum costs and see the cost-aware design\nVisualise: 2D density, 3D objective surface, interactive boundary explorer"
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#what-is-new-in-version-2.0-4",
-    "href": "posts/stratifyR-2.0-4/index.html#what-is-new-in-version-2.0-4",
-    "title": "stratifyR 2.0-4",
-    "section": "What Is New in Version 2.0-4",
-    "text": "What Is New in Version 2.0-4\nNEWFull variance: fpc = TRUE makes the exact solver minimise the full variance of the estimated mean, including the finite population correction, with a certificate of optimality.\nNEWTake-all stratum: takeall = TRUE lets the top stratum be sampled completely when this lowers the variance, choosing its size together with the other boundaries.\nNEWNew output: every result now carries variance (with the finite population correction) and takeall, and summary() shows them. A warning is given if a stratum gets fewer than 2 sample units.\nBETTERShiny app: tick boxes for the new options, readable drop-down lists, and the number of strata now written as L throughout.\nCOMPATFully backward-compatible. Existing strata.data() and strata.distr() calls give the same results as before.\nEarlier in 2.0-2 and 2.0-3: the exact solver, accuracy improvements to COBYLA, GLOBAL and DP from a 20-seed simulation study, and fixes to the Pareto, triangular and Cauchy fits.\nAlready in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, compare_designs(), solution-quality diagnostics, the 2D, 3D and interactive plots, and the Shiny app."
+    "objectID": "posts/stratifyR-2.1-0/index.html#what-is-new-in-version-2.1-0",
+    "href": "posts/stratifyR-2.1-0/index.html#what-is-new-in-version-2.1-0",
+    "title": "stratifyR 2.1-0",
+    "section": "What Is New in Version 2.1-0",
+    "text": "What Is New in Version 2.1-0\nNEWAccessor functions: boundaries(), allocation(), objective(), variance() and fitted_distribution() take the results out of any design, and as.data.frame() works on results and summaries.\nBETTERsummary() now returns a summary object that you can keep and reuse. It prints only when you ask, and looks the same as before.\nBETTERClear messages: every argument is checked first, and a wrong input stops with a message that says what is expected.\nFIXWorks alongside the stratification package: results now have class c(\"stratifyR\", \"strata\"), so print() and plot() keep working when both packages are loaded.\nFIXNo more spurious \"NaNs produced\" warnings, and a clearer variance label in the Shiny app.\nCOMPATExisting strata.data() and strata.distr() calls give the same results as before.\nEarlier in 2.0-4: the full-variance and take-all options for the exact solver. In 2.0-2 and 2.0-3: the exact solver, accuracy improvements to COBYLA, GLOBAL and DP from a 20-seed simulation study, and fixes to the Pareto, triangular and Cauchy fits.\nAlready in 2.0: the COBYLA and GLOBAL solvers, cost-constrained allocation, compare_designs(), the 2D, 3D and interactive plots, and the Shiny app."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#who-is-stratifyr-for",
-    "href": "posts/stratifyR-2.0-4/index.html#who-is-stratifyr-for",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#who-is-stratifyr-for",
+    "href": "posts/stratifyR-2.1-0/index.html#who-is-stratifyr-for",
+    "title": "stratifyR 2.1-0",
     "section": "Who Is stratifyR For?",
     "text": "Who Is stratifyR For?\n\n  Statistical OfficesBusiness, agricultural, and household surveys where good stratification cuts the sample size (and cost) needed to hit a target precision.\n  Survey MethodologistsAn open, reproducible implementation with a globally optimal solver to benchmark against classical boundary rules.\n  Applied ResearchersHealth, economics, agriculture, environment. Design an efficient sample at the planning stage using an assumed distribution.\n  Teachers & StudentsThe app and interactive plots show how boundaries and allocation affect an estimate, with no code needed."
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#quick-reference",
-    "href": "posts/stratifyR-2.0-4/index.html#quick-reference",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#quick-reference",
+    "href": "posts/stratifyR-2.1-0/index.html#quick-reference",
+    "title": "stratifyR 2.1-0",
     "section": "Quick Reference",
-    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nstrata.data(x, h, n)\nFit + optimal boundaries + allocation from data\n\n\nstrata.data(x, h, n, method = \"exact\")\nExact optimum on the data\n\n\nstrata.data(x, h, n, method = \"exact\", takeall = TRUE)\nFull variance with a take-all stratum\n\n\nstrata.distr(h, n, distr, params, N)\nOptimal design from assumed distribution\n\n\ncompare_designs(res)\nDesign efficiency vs. SRS and proportional\n\n\nplot(res)\n2D strata density plot\n\n\nplot(res, type = \"3d\")\nInteractive 3D objective surface\n\n\nplot(res, type = \"interactive\")\nReal-time boundary explorer\n\n\nstratifyRApp()\nLaunch Shiny app\n\n\nsummary(res)\nFull per-stratum table\n\n\nprint(res)\nConsole summary"
+    "text": "Quick Reference\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nstrata.data(x, h, n)\nFit + optimal boundaries + allocation from data\n\n\nstrata.data(x, h, n, method = \"exact\")\nExact optimum on the data\n\n\nstrata.data(x, h, n, method = \"exact\", takeall = TRUE)\nFull variance with a take-all stratum\n\n\nstrata.distr(h, n, distr, params, N)\nOptimal design from assumed distribution\n\n\ncompare_designs(res)\nDesign efficiency vs. SRS and proportional\n\n\nplot(res)\n2D strata density plot\n\n\nplot(res, type = \"3d\")\nInteractive 3D objective surface\n\n\nplot(res, type = \"interactive\")\nReal-time boundary explorer\n\n\nstratifyRApp()\nLaunch Shiny app\n\n\nboundaries(res), allocation(res)\nOptimal boundaries, and the per-stratum table\n\n\nobjective(res), variance(res)\nObjective function, and variance of the estimated mean\n\n\nsummary(res)\nFull per-stratum table\n\n\nprint(res)\nConsole summary"
   },
   {
-    "objectID": "posts/stratifyR-2.0-4/index.html#citation",
-    "href": "posts/stratifyR-2.0-4/index.html#citation",
-    "title": "stratifyR 2.0-4",
+    "objectID": "posts/stratifyR-2.1-0/index.html#citation",
+    "href": "posts/stratifyR-2.1-0/index.html#citation",
+    "title": "stratifyR 2.1-0",
     "section": "Citation",
-    "text": "Citation\ncitation(\"stratifyR\")\n\nReddy, K. G., & Khan, M. G. M. (2026). stratifyR: Optimal Stratification of Univariate Populations. R package version 2.0-4. https://cran.r-project.org/package=stratifyR\n\n\n\n\n\n\n\n\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR\nA full software paper on stratifyR 2.0, benchmarking all four solvers against the exact optimum and the classical methods, is being prepared for journal submission.\nWe would love to hear how you are using the package. Get in touch or leave a comment."
+    "text": "Citation\ncitation(\"stratifyR\")\n\nReddy, K. G., & Khan, M. G. M. (2026). stratifyR: Optimal Stratification of Univariate Populations. R package version 2.1-0. https://cran.r-project.org/package=stratifyR\n\n\n\n\n\n\n\n\nstratifyR is on CRAN: https://cran.r-project.org/package=stratifyR, and the development version is on GitHub: https://github.com/karunaredz/stratifyR.\nA methods paper, benchmarking all four solvers against the exact optimum and the classical methods, is being prepared for journal submission.\nWe would love to hear how you are using the package. Get in touch or leave a comment."
   },
   {
     "objectID": "posts/fitverse-1.0-2/index.html",
@@ -487,6 +487,6 @@
     "href": "index.html",
     "title": "Blog",
     "section": "",
-    "text": "clusta 1.0-1\n\n\nFrom ordered data to non-convex clusters\n\n\n\nR\n\nclusta\n\nclustering\n\ndynamic programming\n\n\n\nA practical guide to dynamic-programming clustering, S-MPDP, diagnostics, benchmark data, figures, and the Shiny app\n\n\n\n\n\nOct 30, 2026\n\n\nKaruna G. Reddy, Gabiriele Bulivou and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nmultistrata\n\n\nMultivariate Optimum Stratification and Sample Allocation for Surveys\n\n\n\nR\n\nmultistrata\n\nsurvey sampling\n\nstratification\n\nCRAN\n\n\n\nJoint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1\n\n\n\n\n\nOct 30, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nstratifyR 2.0-4\n\n\nOptimal Survey Stratification in R\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\nCRAN\n\n\n\nDynamic programming · Exact solver · Full variance and take-all strata · COBYLA · GLOBAL · Cost-constrained allocation · Design efficiency · Shiny app · v2.0-4\n\n\n\n\n\nOct 25, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nFitVerse\n\n\nParametric Distribution Fitting in R\n\n\n\nR\n\nFitVerse\n\ndistributions\n\nCRAN\n\n\n\n52 distributions · MLE / MOM / L-moments · GoF tests · Bootstrap CI · Shiny app · v1.0-2\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
+    "text": "stratifyR 2.1-0\n\n\nOptimal Survey Stratification in R\n\n\n\nR\n\nstratifyR\n\nsurvey sampling\n\nCRAN\n\n\n\nDynamic programming · Exact solver · Full variance and take-all strata · COBYLA · GLOBAL · Accessor functions · Design efficiency · Shiny app · v2.1-0\n\n\n\n\n\nNov 14, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nclusta 1.0-1\n\n\nFrom ordered data to non-convex clusters\n\n\n\nR\n\nclusta\n\nclustering\n\ndynamic programming\n\n\n\nA practical guide to dynamic-programming clustering, S-MPDP, diagnostics, benchmark data, figures, and the Shiny app\n\n\n\n\n\nOct 30, 2026\n\n\nKaruna G. Reddy, Gabiriele Bulivou and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nmultistrata\n\n\nMultivariate Optimum Stratification and Sample Allocation for Surveys\n\n\n\nR\n\nmultistrata\n\nsurvey sampling\n\nstratification\n\nCRAN\n\n\n\nJoint boundary + allocation optimisation · COBYLA / SLSQP solvers · CV constraints · Cost-constrained design · Precision-driven find_n() · Shiny app · v1.0-1\n\n\n\n\n\nOct 30, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\n\n\n\n\n\n\n\nFitVerse\n\n\nParametric Distribution Fitting in R\n\n\n\nR\n\nFitVerse\n\ndistributions\n\nCRAN\n\n\n\n52 distributions · MLE / MOM / L-moments · GoF tests · Bootstrap CI · Shiny app · v1.0-2\n\n\n\n\n\nOct 4, 2026\n\n\nKaruna G. Reddy and M. G. M. Khan\n\n\n\n\n\nNo matching items"
   }
 ]
